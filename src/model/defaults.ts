@@ -17,6 +17,7 @@ const O = "ribbon-toolbar:";
 const M = "markdown-spreadsheets:";
 const T = "obsidian-tasks-plugin:";
 const X = "obsidian-excalidraw-plugin:";
+const TE = "templater-obsidian:";
 
 type Extra = { requires?: FeatureKey; when?: "spreadsheet" };
 
@@ -125,8 +126,12 @@ const TABS: RibbonTab[] = [
 		G("insert-files", "Files", [
 			L("editor:attach-file", "Attachment", "paperclip"),
 			S("editor:insert-embed", "Embed note", "file-input"),
-			S("insert-template", "Template", "layout-template"),
 			S(X + "excalidraw-autocreate-and-embed", "Embed drawing", "image-plus", undefined, { requires: "excalidraw" }),
+		]),
+		G("insert-templates", "Templates", [
+			S("insert-template", "Template", "layout-template", undefined, { requires: "templates" }),
+			S(TE + "insert-templater", "Templater", "layout-template", "purple", { requires: "templater" }),
+			S(TE + "create-new-note-from-template", "New from template", "file-plus", undefined, { requires: "templater" }),
 		]),
 		G("insert-links", "Links", [
 			S("editor:insert-link", "Link", "link"),

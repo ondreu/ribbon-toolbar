@@ -37,6 +37,7 @@ const DETECT_LABEL: Array<[keyof Detected, string]> = [
 	["excalidraw", "Excalidraw"],
 	["bases", "Bases"],
 	["templates", "Templates"],
+	["templater", "Templater"],
 ];
 
 export class RibbonSettingTab extends PluginSettingTab {

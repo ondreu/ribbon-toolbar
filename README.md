@@ -13,7 +13,8 @@ AI integrations.
   full one); `Full` is three rows (96 px) like the ribbon in OneNote Style. Both keep labels.
 - **Everything is a command.** Any command from Obsidian, its core plugins or a community plugin
   can be put on the ribbon. Buttons whose plugin is missing are greyed out with the reason, and
-  tabs that only make sense with an optional plugin (`Tasks`, `Excalidraw`, `Spreadsheets`) are
+  tabs that only make sense with an optional plugin (`Tasks`, `Excalidraw`, `Templater`,
+  `Spreadsheets`) are
   hidden until that plugin is installed.
 - **Customise in place.** Right-click a tab, group or button to rename it, change its icon or
   colour, move it, or remove it. Customise mode adds drag and drop and `+` tiles. The layout can
@@ -34,6 +35,7 @@ AI integrations.
 | **Markdown Spreadsheets** | Its whole Excel-style toolbar as the contextual `Spreadsheet` tab. While Ribbon toolbar is running, that plugin hides its own toolbar. Starting a spreadsheet switches the ribbon to the tab automatically. |
 | **Tasks** | Create/edit a task and toggle it done, next to Obsidian's own checkbox command. |
 | **Templates** | Insert a template from the core Templates plugin. |
+| **Templater** | Insert a Templater template, or start a new note from one. The buttons only appear when Templater is enabled. |
 | **Excalidraw** | New drawing, embed a drawing, open one, toggle drawing/text. |
 | **Canvas** | New canvas, jump to a group, convert to a note, export as an image. |
 | **Bases** | New base, insert a base, add a view or an item. |

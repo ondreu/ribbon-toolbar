@@ -35,6 +35,8 @@ export interface Detected {
 	excalidraw: boolean;
 	bases: boolean;
 	templates: boolean;
+	/** Templater registers `templater-obsidian:insert-templater`; the command is the contract. */
+	templater: boolean;
 }
 
 export function detect(app: App): Detected {
@@ -44,6 +46,7 @@ export function detect(app: App): Detected {
 		excalidraw: isPluginEnabled(app, "obsidian-excalidraw-plugin"),
 		bases: !!findCommand(app, "bases:new-file"),
 		templates: !!findCommand(app, "insert-template"),
+		templater: !!findCommand(app, "templater-obsidian:insert-templater"),
 	};
 }
 
@@ -56,6 +59,7 @@ export function featureSet(app: App, settings: RibbonSettings, detected = detect
 	if (detected.excalidraw) features.add("excalidraw");
 	if (detected.bases) features.add("bases");
 	if (detected.templates) features.add("templates");
+	if (detected.templater) features.add("templater");
 	return features;
 }
 
