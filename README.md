@@ -105,10 +105,10 @@ is how the layout is checked at 1400, 900 and 760 px before a vault test.
 The release tag must equal `manifest.json` character for character, with no `v` prefix:
 
 ```bash
-node scripts/bump-version.mjs 0.2.5
+node scripts/bump-version.mjs 0.2.6
 npm run check
-git commit -am "Release 0.2.5" && git push
-git tag 0.2.5 && git push origin 0.2.5
+git commit -am "Release 0.2.6" && git push
+git tag 0.2.6 && git push origin 0.2.6
 ```
 
 ## Privacy

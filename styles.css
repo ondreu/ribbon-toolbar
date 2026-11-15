@@ -134,6 +134,8 @@ body.is-hidden-frameless:not(.is-fullscreen) .rtb-tabrow {
 	/* Do not make the whole strip a drag region: it overlaps the window controls and the
 	   sidebar toggles. Only the empty spacer between the tabs and the end controls drags. */
 	-webkit-app-region: no-drag;
+	/* Reserve the fixed secondary panel toggle (36 px), the window controls and a 10 px gap. */
+	padding-right: calc(max(var(--frame-right-space, 0px), 126px) + 54px);
 }
 
 body.is-hidden-frameless:not(.is-fullscreen) .rtb-tabrow-spacer {
@@ -142,11 +144,6 @@ body.is-hidden-frameless:not(.is-fullscreen) .rtb-tabrow-spacer {
 
 body.is-hidden-frameless:not(.is-fullscreen) .rtb-tabrow > *:not(.rtb-tabrow-spacer) {
 	-webkit-app-region: no-drag;
-}
-
-body.is-hidden-frameless.mod-linux:not(.is-fullscreen) .rtb-tabrow,
-body.is-hidden-frameless.mod-windows:not(.is-fullscreen) .rtb-tabrow {
-	padding-right: max(var(--frame-right-space, 0px), 145px);
 }
 
 body.is-hidden-frameless.mod-macos:not(.is-fullscreen) .rtb-tabrow {
