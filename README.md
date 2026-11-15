@@ -5,7 +5,7 @@ run commands. Inspired by [OneNote Style](https://github.com/Sundowna/obsidian-o
 but deliberately smaller — Markdown formatting only, no OneNote tags, page colours, subpages or
 AI integrations.
 
-![The compact ribbon](docs/images/compact-light.jpg)
+![The full ribbon on the Home tab](docs/screenshots/01-home.png)
 
 ## What it does
 
@@ -27,6 +27,23 @@ AI integrations.
   hidden until the setting is turned on.
 - **Starts collapsed if you want.** The ribbon can open as a tab row only; clicking a tab unfolds
   it, double-clicking a tab toggles it, and there is a command for it too.
+
+## Screenshots
+
+**Home — formatting, styles, review and editing**
+![Home tab with the full ribbon](docs/screenshots/01-home.png)
+
+**Insert — the compact two-row ribbon: templates, links, blocks and pages**
+![Insert tab with the compact ribbon](docs/screenshots/02-insert-compact.png)
+
+**Spreadsheet — Markdown Spreadsheets' grid hosted in the contextual tab**
+![Spreadsheet tab with a Markdown table open in the grid](docs/screenshots/03-spreadsheets.png)
+
+**Review — thesaurus for the selected word, via the Synonym plugin**
+![Thesaurus menu open over the selected word](docs/screenshots/04-thesaurus.png)
+
+**Customise — drag and drop, plus tiles and a Done button**
+![Customise mode with dashed groups and plus tiles](docs/screenshots/05-customise.png)
 
 ## Integrations
 
