@@ -86,6 +86,12 @@ git commit -am "Release 0.2.0" && git push
 git tag 0.2.0 && git push origin 0.2.0
 ```
 
+## Privacy
+
+No network access and no telemetry. **Paste** reads the system clipboard only when you press it;
+**Copy** and **Cut** write to it only when you press them. The layout and settings stay in this
+vault's plugin data (`data.json`).
+
 ## Credits
 
 The ribbon model and the Office-like sizing ladder were inspired by

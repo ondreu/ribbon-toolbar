@@ -7,7 +7,7 @@
  * hand its toolbar over.
  */
 
-import { PluginSettingTab, Setting, type App } from "obsidian";
+import { PluginSettingTab, Setting, type App, type SettingDefinitionItem } from "obsidian";
 import { detect, type Detected } from "./integrations";
 import type RibbonToolbarPlugin from "./main";
 export interface RibbonSettings {
@@ -46,6 +46,110 @@ export class RibbonSettingTab extends PluginSettingTab {
 		private readonly plugin: RibbonToolbarPlugin,
 	) {
 		super(app, plugin);
+	}
+
+	/**
+	 * The declarative form of the same settings. Obsidian 1.13+ uses it for the settings
+	 * search index; older versions keep calling display() below.
+	 */
+	getSettingDefinitions(): SettingDefinitionItem[] {
+		const detected = detect(this.app);
+		const definitions: SettingDefinitionItem[] = [
+			{
+				type: "group",
+				heading: "Appearance",
+				items: [
+					{
+						name: "Ribbon height",
+						desc: "Compact keeps two rows of buttons and is about a third shorter than the full ribbon.",
+						control: {
+							type: "dropdown",
+							key: "height",
+							options: { compact: "Compact — two rows", full: "Full — three rows" },
+							defaultValue: "compact",
+						},
+					},
+					{
+						name: "Start collapsed",
+						desc: "Show only the tab row when Obsidian starts. Click a tab to unfold the ribbon.",
+						control: { type: "toggle", key: "startCollapsed", defaultValue: false },
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: "Formatting",
+				items: [
+					{
+						name: "HTML formatting",
+						desc:
+							"Adds underline, font colour and a coloured highlight, which are inline HTML rather than Markdown. " +
+							"Off by default, and the HTML tab stays hidden until it is on. Subscript and superscript are always available.",
+						control: { type: "toggle", key: "enableHtml", defaultValue: false },
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: "Integrations",
+				items: [
+					{
+						name: "Markdown spreadsheets",
+						desc: detected.spreadsheet
+							? "Hide that plugin's own toolbar and put its actions in the Spreadsheet tab of this ribbon."
+							: "Markdown Spreadsheets is not installed or is turned off.",
+						control: {
+							type: "toggle",
+							key: "integrateSpreadsheet",
+							defaultValue: true,
+							disabled: !detected.spreadsheet,
+						},
+					},
+					{
+						name: "Open the spreadsheet tab automatically",
+						desc: "Switch to the spreadsheet tab when a spreadsheet becomes the active view.",
+						control: {
+							type: "toggle",
+							key: "autoSwitchSpreadsheetTab",
+							defaultValue: true,
+							disabled: !detected.spreadsheet || !this.plugin.settings.integrateSpreadsheet,
+						},
+					},
+					...DETECT_LABEL.map(([key, label]) => ({
+						name: label,
+						desc: detected[key] ? "Available" : "Not found",
+					})),
+				],
+			},
+			{
+				type: "group",
+				heading: "Customise",
+				items: [
+					{
+						name: "Customise the ribbon",
+						desc: "Right-click the ribbon to add, rename, move or remove anything. Drag and drop works in customise mode.",
+						action: () => this.plugin.startCustomising(),
+					},
+					{
+						name: "Reset to default",
+						desc: "Replace all tabs, groups and buttons with the default layout. You can undo this once.",
+						action: () => void this.plugin.resetLayout(),
+					},
+				],
+			},
+		];
+		return definitions;
+	}
+
+	getControlValue(key: string): unknown {
+		return (this.plugin.settings as unknown as Record<string, unknown>)[key];
+	}
+
+	async setControlValue(key: string, value: unknown): Promise<void> {
+		(this.plugin.settings as unknown as Record<string, unknown>)[key] = value;
+		// saveSettings() writes the whole plugin data object, not just the settings keys, so the
+		// layout and ribbon state survive a change made through the declarative UI.
+		await this.plugin.saveSettings();
 	}
 
 	display(): void {
