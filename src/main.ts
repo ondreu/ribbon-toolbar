@@ -167,13 +167,19 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 
 	/* ---------- mount ---------- */
 
+	/** The document that owns Obsidian's main workspace, not a settings popout. */
+	private mainDocument(): Document {
+		return this.app.workspace.containerEl.ownerDocument;
+	}
+
 	private mountRibbon(): void {
 		this.removeRibbon();
-		const at = mountPoint(activeDocument);
+		const doc = this.mainDocument();
+		const at = mountPoint(doc);
 		if (!at) return;
 		const root = at.parent.createDiv("rtb");
 		at.parent.insertBefore(root, at.before);
-		activeDocument.body.addClass("rtb-has-topbar");
+		doc.body.addClass("rtb-has-topbar");
 
 		const tabrow = root.createDiv("rtb-tabrow");
 		const quick = tabrow.createDiv("rtb-qat");
@@ -198,10 +204,11 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 	}
 
 	private removeRibbon(): void {
+		const doc = this.rootEl?.ownerDocument ?? this.mainDocument();
 		this.view.unmount();
 		this.rootEl?.remove();
 		this.rootEl = null;
-		activeDocument.body.removeClass("rtb-has-topbar");
+		doc.body.removeClass("rtb-has-topbar");
 	}
 
 	private ensureMounted(): void {

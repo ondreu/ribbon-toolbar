@@ -69,8 +69,27 @@
 /* Frameless windows draw their controls over the top of the app. The ribbon takes that strip
    over, like the ribbon in OneNote Style: the tab row becomes the drag area and reserves room
    for the window buttons, so the collapse control is not buried under Close. */
+/* The window controls sit above the drag strip. Without an explicit no-drag region,
+   Electron can treat the whole strip as draggable and swallow the clicks. */
+body.rtb-has-topbar .titlebar-button-container,
+body.rtb-has-topbar .titlebar-button-container .titlebar-button {
+	-webkit-app-region: no-drag;
+}
+
 body.rtb-has-topbar .titlebar-button-container {
 	z-index: 1000;
+}
+
+/* The primary sidebar toggle lives at the top-left of the titlebar; its ribbon item is
+   below the workspace in the stacking order, so lift the ribbon above our top bar. */
+body.rtb-has-topbar .workspace-ribbon.mod-primary {
+	z-index: 22;
+}
+
+/* Keep the quick-access tools clear of that sidebar toggle. The macOS frame inset rule
+   below is more specific and keeps its larger left inset. */
+body.rtb-has-topbar.show-ribbon .rtb-tabrow {
+	padding-left: 50px;
 }
 
 /* Match the buttons to the 32 px tab row: without this the container is 39 px and its bottom
