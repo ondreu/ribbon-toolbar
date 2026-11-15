@@ -92,6 +92,20 @@ body.rtb-has-topbar.show-ribbon .rtb-tabrow {
 	padding-left: 50px;
 }
 
+/* Both panel toggles should sit on the titlebar row, even when one of the sidebars is
+   collapsed and Obsidian moves its toggle into the tab header. Linux and Windows only:
+   macOS keeps the native traffic-light inset. */
+body.rtb-has-topbar.mod-linux.is-hidden-frameless:not(.is-fullscreen) .sidebar-toggle-button.mod-left,
+body.rtb-has-topbar.mod-windows.is-hidden-frameless:not(.is-fullscreen) .sidebar-toggle-button.mod-left {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 44px;
+	height: 39px;
+	z-index: 22;
+	-webkit-app-region: no-drag;
+}
+
 /* Keep the secondary sidebar toggle on the same visual line as the primary one. Obsidian
    keeps the right toggle inside the workspace tab header, which our top bar pushes below the
    titlebar; fixing it to the titlebar row makes the pair symmetrical. */
@@ -101,7 +115,7 @@ body.rtb-has-topbar.is-hidden-frameless:not(.is-fullscreen) .sidebar-toggle-butt
 	right: calc(max(var(--frame-right-space, 0px), 126px) + 8px);
 	width: 36px;
 	height: 39px;
-	z-index: 1000;
+	z-index: 22;
 	-webkit-app-region: no-drag;
 }
 
