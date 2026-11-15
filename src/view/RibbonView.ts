@@ -67,6 +67,7 @@ interface Press {
 	label?: string;
 	x: number;
 	y: number;
+	pointerId: number;
 }
 
 interface DragState {
@@ -149,6 +150,7 @@ export class RibbonView {
 		// ResizeObserver covers the ribbon itself; the window listener covers a viewport
 		// change where the app container is resized in the same frame and no second RO tick comes.
 		root.ownerDocument.defaultView?.addEventListener("resize", this.onWindowResize);
+		root.ownerDocument.defaultView?.addEventListener("blur", this.onWindowBlur);
 		let frame = 0;
 		this.observer = new ResizeObserver(() => {
 			if (frame) return;
@@ -207,6 +209,7 @@ export class RibbonView {
 			this.root.removeEventListener("dblclick", this.onDoubleClick);
 			this.root.removeEventListener("keydown", this.onKeyDown);
 			this.root.ownerDocument.defaultView?.removeEventListener("resize", this.onWindowResize);
+			this.root.ownerDocument.defaultView?.removeEventListener("blur", this.onWindowBlur);
 		}
 		this.root = this.tabsEl = this.bodyEl = this.toggleEl = this.strip = null;
 	}
@@ -225,6 +228,10 @@ export class RibbonView {
 	private readonly onWindowResize = (): void => {
 		this.fitTabRow();
 		this.layoutBody();
+	};
+
+	private readonly onWindowBlur = (): void => {
+		if (this.press || this.drag) this.cancelDrag();
 	};
 
 	private renderToggle(): void {
@@ -356,9 +363,16 @@ export class RibbonView {
 		const tabs = Array.from(el.querySelectorAll<HTMLElement>(".rtb-tab[data-tab]"));
 		tabs.forEach((t) => t.removeClass("is-overflow", "is-squeezed"));
 		if (!tabs.length || el.clientWidth <= 0 || el.scrollWidth <= el.clientWidth + 1) return;
+		const add = el.querySelector<HTMLElement>(".rtb-tab-add");
+		const addWidth = add ? Math.ceil(add.getBoundingClientRect().width) + 2 : 0;
 		const widths = tabs.map((t) => Math.ceil(t.getBoundingClientRect().width) + 2);
 		const activeIndex = tabs.findIndex((t) => t.hasClass("is-active"));
-		const fit = fitTabs({ widths, available: el.clientWidth, active: activeIndex, moreWidth: this.editing ? 68 : 34 });
+		const fit = fitTabs({
+			widths,
+			available: Math.max(1, el.clientWidth - addWidth),
+			active: activeIndex,
+			moreWidth: this.editing ? 68 : 34,
+		});
 		fit.overflow.forEach((i) => tabs[i]?.addClass("is-overflow"));
 		if (!fit.overflow.length) return;
 		// Even the active tab alone is too wide: let its label shorten with "...".
@@ -434,7 +448,7 @@ export class RibbonView {
 			this.strip.createSpan({ cls: "rtb-empty-hint", text: "No tab is available. Enable a feature or reset the ribbon." });
 			return;
 		}
-		const groups = M.visibleGroups(tab, this.caps);
+		const groups = M.visibleGroups(tab, this.caps, this.editing);
 		if (!groups.length) {
 			const empty = this.strip.createEl("button", { cls: "rtb-empty", attr: { type: "button" } });
 			setIcon(empty.createSpan("rtb-empty-icon"), "plus");
@@ -499,7 +513,7 @@ export class RibbonView {
 		const strip = this.strip;
 		const tab = this.currentTab();
 		if (!strip || !strip.isConnected || !tab || !this.measured) return;
-		const groups = M.visibleGroups(tab, this.caps);
+		const groups = M.visibleGroups(tab, this.caps, this.editing);
 		if (!groups.length || strip.clientWidth <= 0) return;
 		const available = Math.floor(strip.clientWidth) - (this.editing ? this.measured.newGroupWidth : 0);
 		const fit = fitGroups({
@@ -661,10 +675,13 @@ export class RibbonView {
 		if (wasOpen) return;
 		const doc = this.doc;
 		const pop = doc.body.createDiv(`rtb-popover ${cls}`);
+		pop.setAttr("role", "menu");
+		pop.setAttr("tabindex", "-1");
 		pop.addEventListener("mousedown", (event) => event.preventDefault());
 		pop.addEventListener("click", this.onClick);
 		pop.addEventListener("contextmenu", this.onContextMenu);
 		build(pop);
+		pop.querySelectorAll("button").forEach((button) => button.setAttr("role", "menuitem"));
 		const rect = anchorEl.getBoundingClientRect();
 		const vw = doc.documentElement.clientWidth;
 		const vh = doc.documentElement.clientHeight;
@@ -687,17 +704,37 @@ export class RibbonView {
 		};
 		doc.addEventListener("mousedown", onDown, true);
 		doc.addEventListener("keydown", onKey, true);
+		const focusables = Array.from(
+			pop.querySelectorAll<HTMLElement>("button:not([disabled]), [href], [tabindex]:not([tabindex='-1'])"),
+		).filter((el) => el.getClientRects().length > 0);
+		const onPopKey = (event: KeyboardEvent): void => {
+			if (!focusables.length) return;
+			const index = focusables.indexOf(doc.activeElement as HTMLElement);
+			const focusAt = (next: number): void => {
+				event.preventDefault();
+				focusables[(next + focusables.length) % focusables.length]?.focus();
+			};
+			if (event.key === "ArrowDown") focusAt(index < 0 ? 0 : index + 1);
+			else if (event.key === "ArrowUp") focusAt(index < 0 ? focusables.length - 1 : index - 1);
+			else if (event.key === "Home") focusAt(0);
+			else if (event.key === "End") focusAt(focusables.length - 1);
+		};
+		pop.addEventListener("keydown", onPopKey);
 		anchorEl.addClass("is-open");
 		anchorEl.setAttr("aria-expanded", "true");
+		const first = focusables[0];
+		if (first) window.setTimeout(() => first.focus(), 0);
 		this.popover = {
 			el: pop,
 			anchor: anchorEl,
 			close: () => {
+				const hadFocus = pop.contains(doc.activeElement);
 				pop.remove();
 				doc.removeEventListener("mousedown", onDown, true);
 				doc.removeEventListener("keydown", onKey, true);
 				anchorEl.removeClass("is-open");
 				anchorEl.setAttr("aria-expanded", "false");
+				if (hadFocus) anchorEl.focus();
 			},
 		};
 	}
@@ -814,9 +851,11 @@ export class RibbonView {
 		}
 		const tabEl = active?.closest<HTMLElement>(".rtb-tab[data-tab]");
 		if (!tabEl || !this.tabsEl) return;
-		const tabs = Array.from(this.tabsEl.querySelectorAll<HTMLElement>(".rtb-tab[data-tab]"));
-		const index = tabs.indexOf(tabEl);
-		if (index < 0) return;
+		const tabs = Array.from(this.tabsEl.querySelectorAll<HTMLElement>(".rtb-tab[data-tab]")).filter(
+			(tab) => tab.getClientRects().length > 0,
+		);
+		let index = tabs.indexOf(tabEl);
+		if (index < 0) index = 0;
 		const focusAt = (next: number): void => tabs[(next + tabs.length) % tabs.length]?.focus();
 		switch (event.key) {
 			case "Enter":
@@ -872,6 +911,9 @@ export class RibbonView {
 		const itemEl = target.closest<HTMLElement>("[data-item]");
 		const groupEl = target.closest<HTMLElement>("[data-group]");
 		const tabEl = target.closest<HTMLElement>(".rtb-tab[data-tab]");
+		// A popover sits below Obsidian's menu layer; close it before opening a native menu so the
+		// menu is not painted underneath it.
+		this.closePopover();
 		let menu: Menu | null;
 		if (itemEl?.dataset.item) menu = this.itemMenu(itemEl.dataset.item, event);
 		else if (groupEl?.dataset.group) menu = this.groupMenu(groupEl.dataset.group);
@@ -1242,17 +1284,40 @@ export class RibbonView {
 		let press: Press | null = null;
 		const itemEl = target.closest<HTMLElement>("[data-item]");
 		if (itemEl?.dataset.item && this.strip.contains(itemEl) && this.editing) {
-			press = { kind: "item", id: itemEl.dataset.item, el: itemEl, x: event.clientX, y: event.clientY };
+			press = {
+				kind: "item",
+				id: itemEl.dataset.item,
+				el: itemEl,
+				x: event.clientX,
+				y: event.clientY,
+				pointerId: event.pointerId,
+			};
 		} else if (this.editing) {
 			// In customise mode tabs and groups (by their label) can be dragged too.
 			const tabEl = target.closest<HTMLElement>(".rtb-tab[data-tab]");
 			const groupEl = target.closest<HTMLElement>(".rtb-group[data-group]");
 			if (tabEl?.dataset.tab) {
-				press = { kind: "tab", id: tabEl.dataset.tab, el: tabEl, label: tabEl.textContent ?? "", x: event.clientX, y: event.clientY };
+				press = {
+					kind: "tab",
+					id: tabEl.dataset.tab,
+					el: tabEl,
+					label: tabEl.textContent ?? "",
+					x: event.clientX,
+					y: event.clientY,
+					pointerId: event.pointerId,
+				};
 			} else if (groupEl?.dataset.group && this.strip.contains(groupEl) && target.closest(".rtb-group-label, .rtb-group-button")) {
 				const found = M.findGroup(this.layout, groupEl.dataset.group);
 				if (found) {
-					press = { kind: "group", id: found.group.id, el: groupEl, label: found.group.name, x: event.clientX, y: event.clientY };
+					press = {
+						kind: "group",
+						id: found.group.id,
+						el: groupEl,
+						label: found.group.name,
+						x: event.clientX,
+						y: event.clientY,
+						pointerId: event.pointerId,
+					};
 				}
 			}
 		}
@@ -1268,6 +1333,13 @@ export class RibbonView {
 	private onPointerMove = (event: PointerEvent): void => {
 		const press = this.press;
 		if (!press) return;
+		if (event.pointerId !== press.pointerId) return;
+		// If the button was released outside the window, no pointerup reaches us; drop the drag
+		// rather than letting the next plain move or click finish it.
+		if (event.pointerType === "mouse" && (event.buttons & 1) === 0) {
+			this.cancelDrag();
+			return;
+		}
 		if (!this.drag) {
 			if (Math.hypot(event.clientX - press.x, event.clientY - press.y) < DRAG_THRESHOLD) return;
 			this.startDrag(press);
@@ -1390,7 +1462,8 @@ export class RibbonView {
 		groupEl.addClass("is-drop-target");
 	}
 
-	private onPointerUp = (): void => {
+	private onPointerUp = (event: PointerEvent): void => {
+		if (this.press && event.pointerId !== this.press.pointerId) return;
 		const drag = this.drag;
 		const target = drag?.target ?? null;
 		this.cancelDrag();

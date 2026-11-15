@@ -1,10 +1,10 @@
 /*
  * The default ribbon layout. Pure data, editable by the user afterwards.
  *
- * Every button is just a command id. Buttons whose plugin is not installed show greyed
- * out, so the layout can safely name commands of optional plugins. A tab or group that only
- * makes sense with an optional plugin carries `requires`, so it is hidden rather than shown
- * full of dead buttons.
+ * Every button is a command id. Buttons whose command is unavailable are greyed out; a button or
+ * group with `requires` disappears with its plugin, and a group left with no visible buttons is
+ * hidden. A tab or group that only makes sense with an optional plugin carries `requires`, so it
+ * is hidden rather than shown full of dead buttons.
  *
  *   own:        this plugin's commands (ribbon-toolbar:*)
  *   core:       Obsidian and its core plugins
@@ -116,19 +116,9 @@ const TABS: RibbonTab[] = [
 		),
 		G("home-review", "Review", [
 			L(SY + "show", "Thesaurus", "book-a", "purple", { requires: "thesaurus" }),
-			L(LT + "ltcheck-text", "Check text", "spell-check", undefined, { requires: "languagetool" }),
-			S(LT + "ltclear", "Clear marks", "eraser", "pink", { requires: "languagetool" }),
+			L(LT + "ltcheck-text", "Check text", "spell-check-2", undefined, { requires: "languagetool" }),
+			S(LT + "ltclear", "Clear grammar", "remove-formatting", "pink", { requires: "languagetool" }),
 		]),
-		G(
-			"home-editing",
-			"Editing",
-			[
-				S("editor:open-search", "Find", "search"),
-				S("editor:open-search-replace", "Replace", "replace"),
-				S("editor:toggle-spellcheck", "Spelling", "spell-check"),
-			],
-			"first",
-		),
 	]),
 
 	TAB("insert", "Insert", [
@@ -361,6 +351,11 @@ const TABS: RibbonTab[] = [
 			S("editor:toggle-source", "Source mode", "code-2"),
 			S("editor:toggle-readable-line-length", "Line width", "ruler"),
 			S("editor:toggle-line-numbers", "Line numbers", "list-ordered"),
+		]),
+		G("view-editing", "Editing", [
+			S("editor:open-search", "Find", "search"),
+			S("editor:open-search-replace", "Replace", "replace"),
+			S("editor:toggle-spellcheck", "Spelling", "spell-check"),
 		]),
 		G(
 			"view-zoom",

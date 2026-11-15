@@ -28,6 +28,7 @@ import {
 	exportLayout,
 	featureAvailable,
 	importLayout,
+	LAYOUT_VERSION,
 	normalizeLayout,
 	type Capabilities,
 	type ContextKey,
@@ -67,7 +68,7 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 
 	private view = new RibbonView(this);
 	private rootEl: HTMLElement | null = null;
-	private saveTimer = 0;
+	private writeChain: Promise<void> = Promise.resolve();
 	private lastMarkdown: MarkdownView | null = null;
 	private lastViewType = "";
 	private lastLayout: RibbonLayout | null = null;
@@ -101,12 +102,8 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 	}
 
 	onunload(): void {
-		if (this.saveTimer) {
-			window.clearTimeout(this.saveTimer);
-			this.saveTimer = 0;
-			// A debounced edit must not disappear when the plugin is reloaded within 250 ms.
-			void this.saveData({ settings: this.settings, layout: this.layout, state: this.state });
-		}
+		// Queue the final snapshot behind any write already in flight; no timer to lose it to.
+		void this.persist();
 		this.removeRibbon();
 		// With the host gone, Markdown Spreadsheets must put its own toolbar back.
 		refreshSpreadsheetHost(this.app);
@@ -119,9 +116,15 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 		this.settings = { ...DEFAULT_SETTINGS, ...(raw?.settings ?? {}) };
 		if (this.settings.height !== "full" && this.settings.height !== "compact") this.settings.height = "compact";
 		if (raw?.layout) {
+			const version = (raw.layout as { version?: unknown }).version;
+			if (typeof version === "number" && version > LAYOUT_VERSION) {
+				new Notice("Ribbon toolbar: this layout was written by a newer version; showing what this version understands.", 10000);
+			}
 			try {
 				this.layout = normalizeLayout(raw.layout);
-			} catch {
+			} catch (error) {
+				console.error("Ribbon toolbar: the saved layout could not be read", error);
+				new Notice("Ribbon toolbar: the saved layout could not be read; using the default layout.", 10000);
 				this.layout = defaultLayout();
 			}
 		} else {
@@ -135,24 +138,29 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 		if (this.settings.startCollapsed) this.state.ribbonCollapsed = true;
 	}
 
-	private scheduleSave(): void {
-		window.clearTimeout(this.saveTimer);
-		this.saveTimer = window.setTimeout(() => {
-			this.saveTimer = 0;
-			void this.saveData({ settings: this.settings, layout: this.layout, state: this.state });
-		}, 250);
+	private snapshot(): PluginData {
+		return { settings: this.settings, layout: this.layout, state: this.state };
+	}
+
+	/** Queue a write behind the previous one; the last snapshot wins. */
+	private persist(): Promise<void> {
+		const data = this.snapshot();
+		this.writeChain = this.writeChain
+			.then(() => this.saveData(data))
+			.catch((error: unknown) => console.error("Ribbon toolbar: saving failed", error));
+		return this.writeChain;
 	}
 
 	saveLayout(): void {
-		this.scheduleSave();
+		void this.persist();
 	}
 
 	saveState(): void {
-		this.scheduleSave();
+		void this.persist();
 	}
 
 	async saveSettings(): Promise<void> {
-		this.scheduleSave();
+		await this.persist();
 		this.view.remeasure();
 		refreshSpreadsheetHost(this.app);
 	}
@@ -331,6 +339,12 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 			if (!next.tabs.some((tab) => !tab.hidden && featureAvailable(tab.requires, caps))) {
 				throw new Error("This layout has no tab that can be shown with the plugins you have.");
 			}
+			const ok = await this.confirm(
+				"Import ribbon layout",
+				"Replace the current tabs, groups and buttons with the imported layout? You can undo this once.",
+				"Import",
+			);
+			if (!ok) return;
 			this.lastLayout = cloneLayout(this.layout);
 			this.layout = next;
 			this.saveLayout();

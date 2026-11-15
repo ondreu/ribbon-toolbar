@@ -61,8 +61,9 @@ AI integrations.
 | **Advanced Tables** | Format the table at the cursor. |
 | **Kanban** | New board, next to New canvas and New base. |
 
-Every integration is detected from its command. If the plugin is missing or turned off, its
-buttons — and a group left with no buttons — are hidden rather than shown greyed out.
+Every integration is detected from its plugin id or its command. If the plugin is missing or
+turned off, its buttons — and a group left with no buttons — are hidden rather than shown greyed
+out.
 
 The Markdown Spreadsheets integration is a duck-typed, versioned contract (`ribbonHostApi`), so
 either plugin can be installed without the other. If Ribbon toolbar is disabled, the spreadsheet

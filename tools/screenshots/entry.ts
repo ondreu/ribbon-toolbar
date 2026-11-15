@@ -38,7 +38,19 @@ const app = {
 	workspace: {},
 } as unknown as App;
 
-const features = new Set<string>(["html", "tasks", "spreadsheet", "excalidraw", "bases", "templates"]);
+const features = new Set<string>([
+	"html",
+	"tasks",
+	"spreadsheet",
+	"excalidraw",
+	"bases",
+	"templates",
+	"templater",
+	"thesaurus",
+	"languagetool",
+	"advanced-tables",
+	"kanban",
+]);
 if (params.get("html") === "0") features.delete("html");
 
 const host = {

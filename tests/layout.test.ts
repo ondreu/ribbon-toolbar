@@ -167,10 +167,11 @@ describe("default integrations", () => {
 		};
 		expect(visibleItems(review(), caps())).toEqual([]);
 		expect(visibleGroups(home(), caps()).some((group) => group.id === "home-review")).toBe(false);
+		expect(visibleGroups(home(), caps(), true).map((group) => group.id)).toContain("home-review");
 		expect(visibleItems(review(), caps(["thesaurus"])).map((entry) => entry.label)).toEqual(["Thesaurus"]);
 		expect(visibleItems(review(), caps(["languagetool"])).map((entry) => entry.label)).toEqual([
 			"Check text",
-			"Clear marks",
+			"Clear grammar",
 		]);
 		expect(visibleGroups(home(), caps(["thesaurus"])).some((group) => group.id === "home-review")).toBe(true);
 	});
@@ -192,6 +193,20 @@ describe("default integrations", () => {
 		expect(pages ? visibleItems(pages, caps(["kanban"])).some((entry) => entry.label === "New board") : false).toBe(
 			true,
 		);
+	});
+});
+
+describe("tab guards", () => {
+	it("does not hide or remove the last plain tab just because a contextual tab is visible", () => {
+		const layout = normalizeLayout({
+			tabs: [
+				{ name: "Home", groups: [] },
+				{ name: "Sheet", context: "spreadsheet", groups: [] },
+			],
+		});
+		const withGrid = caps([], ["spreadsheet"]);
+		expect(setTabHidden(layout, "home", true, withGrid)).toBe(false);
+		expect(removeTab(layout, "home", withGrid)).toBe(false);
 	});
 });
 
@@ -245,6 +260,14 @@ describe("export and import", () => {
 	it("rejects a newer layout and broken JSON", () => {
 		expect(() => importLayout("{")).toThrow(/valid JSON/i);
 		expect(() => importLayout(JSON.stringify({ version: 99, tabs: [] }))).toThrow(/newer version/i);
+	});
+
+	it("rejects an unknown feature key instead of silently hiding its group", () => {
+		const text = JSON.stringify({
+			version: 1,
+			tabs: [{ name: "Home", groups: [{ name: "G", items: [{ command: "a:b", requires: "advancedTables" }] }] }],
+		});
+		expect(() => importLayout(text)).toThrow(/Unknown feature/i);
 	});
 
 	it("unhides the first tab when everything is hidden", () => {

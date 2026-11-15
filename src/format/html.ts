@@ -42,6 +42,15 @@ export const HIGHLIGHT_COLORS: Pen[] = [
 
 const escapeAttr = (value: string): string => value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
 
+/** True when `offset` sits between `<` and `>` of an HTML tag, e.g. inside a style value. */
+function insideTag(text: string, offset: number): boolean {
+	if (offset <= 0) return false;
+	const open = text.lastIndexOf("<", offset - 1);
+	if (open < 0) return false;
+	if (open < text.lastIndexOf(">", offset - 1)) return false;
+	return text.indexOf(">", offset) >= 0;
+}
+
 /**
  * Wraps the selection in `<tag style="property: value">`, or replaces the style when the
  * selection is already such a tag. A null value removes the wrapper entirely.
@@ -55,6 +64,9 @@ export function applyStyledTag(
 	value: string | null,
 ): TextEdit {
 	const sel = from <= to ? { from, to } : { from: to, to: from };
+	// A selection inside an attribute value (double-clicking "red" in style="color: red") must
+	// not be wrapped: that would write markup into the attribute and break the note.
+	if (insideTag(text, sel.from) || insideTag(text, sel.to)) return { text, from: sel.from, to: sel.to };
 	const open = value === null ? "" : `<${tag} style="${property}: ${escapeAttr(value)}">`;
 	const close = value === null ? "" : `</${tag}>`;
 	const exact = new RegExp(`^<${tag}\\s+style="[^"]*">((?:(?!<${tag}\\b|</${tag}>)[\\s\\S])*)</${tag}>$`);
@@ -124,6 +136,7 @@ export function applyHighlight(text: string, from: number, to: number, color: st
 /** Removes inline HTML tags from the selection, leaving the words. */
 export function clearHtml(text: string, from: number, to: number): TextEdit {
 	const sel = from <= to ? { from, to } : { from: to, to: from };
+	if (insideTag(text, sel.from) || insideTag(text, sel.to)) return { text, from: sel.from, to: sel.to };
 	const selected = text.slice(sel.from, sel.to);
 	const clean = selected.replace(/<\/?(?:u|sub|sup|mark|span|font|div|p)(?:\s[^>]*)?>/gi, "");
 	return {

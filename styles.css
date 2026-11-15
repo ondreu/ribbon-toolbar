@@ -707,7 +707,8 @@ body.is-hidden-frameless.mod-macos:not(.is-fullscreen) .rtb-tabrow {
 
 .rtb-popover {
 	position: fixed;
-	z-index: 1000;
+	/* Above the workspace and ribbon, below Obsidian's modal (50) and menu (65) layers. */
+	z-index: 40;
 	box-sizing: border-box;
 	padding: 6px;
 	border: 1px solid var(--rtb-border);

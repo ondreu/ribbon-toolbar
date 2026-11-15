@@ -31,18 +31,20 @@ export const STACK = 3;
 export type Priority = (typeof PRIORITIES)[number];
 export type ItemSize = (typeof SIZES)[number];
 export type ColorName = (typeof COLORS)[number];
-export type FeatureKey =
-	| "html"
-	| "tasks"
-	| "spreadsheet"
-	| "excalidraw"
-	| "bases"
-	| "templates"
-	| "templater"
-	| "thesaurus"
-	| "languagetool"
-	| "advanced-tables"
-	| "kanban";
+export const FEATURE_KEYS = [
+	"html",
+	"tasks",
+	"spreadsheet",
+	"excalidraw",
+	"bases",
+	"templates",
+	"templater",
+	"thesaurus",
+	"languagetool",
+	"advanced-tables",
+	"kanban",
+] as const;
+export type FeatureKey = (typeof FEATURE_KEYS)[number];
 export type ContextKey = "spreadsheet";
 
 export interface RibbonItem {
@@ -96,6 +98,24 @@ const optionalStr = (v: unknown): string | undefined => (typeof v === "string" &
 
 function optionalFeature(v: unknown): FeatureKey | undefined {
 	return typeof v === "string" && v.trim() ? (v.trim() as FeatureKey) : undefined;
+}
+
+export function isFeatureKey(value: string): value is FeatureKey {
+	return (FEATURE_KEYS as readonly string[]).includes(value);
+}
+
+/** Imported layouts must not contain a typo'd feature key that would silently hide a group. */
+function assertKnownFeatures(layout: RibbonLayout): void {
+	const check = (value: string | undefined, where: string): void => {
+		if (value && !isFeatureKey(value)) throw new Error(`Unknown feature "${value}" in ${where}.`);
+	};
+	for (const tab of layout.tabs) {
+		check(tab.requires, `tab "${tab.name}"`);
+		for (const group of tab.groups) {
+			check(group.requires, `group "${group.name}"`);
+			for (const item of group.items) check(item.requires, `button "${item.label ?? item.command}"`);
+		}
+	}
 }
 
 /**
@@ -182,8 +202,15 @@ export function visibleTabs(layout: RibbonLayout, caps: Capabilities): RibbonTab
 	return layout.tabs.filter((t) => !t.hidden && featureAvailable(t.requires, caps) && contextAvailable(t.context, caps));
 }
 
-export function visibleGroups(tab: RibbonTab, caps: Capabilities): RibbonGroup[] {
-	return tab.groups.filter((g) => featureAvailable(g.requires, caps) && visibleItems(g, caps).length > 0);
+/** A tab that can be shown without the spreadsheet context. */
+function hasPlainTab(layout: RibbonLayout, caps: Capabilities, excludeId?: string): boolean {
+	return layout.tabs.some(
+		(t) => t.id !== excludeId && !t.hidden && !t.context && featureAvailable(t.requires, caps),
+	);
+}
+
+export function visibleGroups(tab: RibbonTab, caps: Capabilities, includeEmpty = false): RibbonGroup[] {
+	return tab.groups.filter((g) => featureAvailable(g.requires, caps) && (includeEmpty || visibleItems(g, caps).length > 0));
 }
 
 export function visibleItems(group: RibbonGroup, caps: Capabilities): RibbonItem[] {
@@ -257,11 +284,11 @@ export function renameTab(layout: RibbonLayout, tabId: string, name: string): bo
 	return true;
 }
 
-/** Hides or shows a tab. The last visible tab can't be hidden. */
+/** Hides or shows a tab. At least one plain (non-context) tab must remain visible. */
 export function setTabHidden(layout: RibbonLayout, tabId: string, hidden: boolean, caps: Capabilities): boolean {
 	const tab = findTab(layout, tabId);
 	if (!tab || tab.hidden === hidden) return false;
-	if (hidden && visibleTabs(layout, caps).length <= 1) return false;
+	if (hidden && !hasPlainTab(layout, caps, tabId)) return false;
 	tab.hidden = hidden;
 	return true;
 }
@@ -292,7 +319,7 @@ export function removeTab(layout: RibbonLayout, tabId: string, caps: Capabilitie
 	const index = layout.tabs.findIndex((t) => t.id === tabId);
 	if (index < 0) return false;
 	const tab = layout.tabs[index] as RibbonTab;
-	if (!tab.hidden && visibleTabs(layout, caps).length <= 1) return false;
+	if (!tab.hidden && !hasPlainTab(layout, caps, tabId)) return false;
 	layout.tabs.splice(index, 1);
 	return true;
 }
@@ -512,6 +539,7 @@ export function importLayout(text: string): RibbonLayout {
 	}
 	const layout = normalizeLayout(raw);
 	if (!layout.tabs.length) throw new Error("This layout has no tabs.");
+	assertKnownFeatures(layout);
 	const caps: Capabilities = { features: new Set(), contexts: new Set() };
 	if (!visibleTabs(layout, caps).length) {
 		const first = layout.tabs[0];

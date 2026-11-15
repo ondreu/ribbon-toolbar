@@ -47,6 +47,28 @@ function normalize(from: number, to: number): Selection {
 }
 
 /**
+ * Lines that are fenced code, including the fence lines themselves. Line prefixes and
+ * headings must leave these alone: turning ``` into `# ``` destroys the block.
+ */
+function fenceMask(lines: string[]): boolean[] {
+	let fence: string | null = null;
+	return lines.map((line) => {
+		const marker = /^\s*(`{3,}|~{3,})/.exec(line)?.[1]?.[0] ?? null;
+		if (marker) {
+			if (fence === null) {
+				fence = marker;
+				return true;
+			}
+			if (fence === marker) {
+				fence = null;
+				return true;
+			}
+		}
+		return fence !== null;
+	});
+}
+
+/**
  * Wraps the selection in `before`/`after`, or removes the markers when they are already there.
  *
  * Markers are looked for in three places, because Obsidian hides Markdown syntax in Live
@@ -101,7 +123,9 @@ export function toggleTag(text: string, from: number, to: number, tag: string): 
 export function setHeading(text: string, from: number, to: number, level: number): TextEdit {
 	const block = expandToLines(text, from, to);
 	const lines = text.slice(block.from, block.to).split("\n");
-	const next = lines.map((line) => {
+	const fenced = fenceMask(lines);
+	const next = lines.map((line, index) => {
+		if (fenced[index]) return line;
 		const indent = /^\s*/.exec(line)?.[0] ?? "";
 		const body = line.slice(indent.length).replace(/^#{1,6}\s+/, "");
 		return level > 0 ? `${indent}${"#".repeat(level)} ${body}` : `${indent}${body}`;
@@ -118,10 +142,11 @@ export function setHeading(text: string, from: number, to: number, level: number
 export function toggleLinePrefix(text: string, from: number, to: number, prefix: string): TextEdit {
 	const block = expandToLines(text, from, to);
 	const lines = text.slice(block.from, block.to).split("\n");
+	const fenced = fenceMask(lines);
 	const has = (line: string): boolean => line.trimStart().startsWith(prefix);
-	const all = lines.filter((line) => line.trim() !== "").every(has);
-	const next = lines.map((line) => {
-		if (!line.trim()) return line;
+	const all = lines.filter((line, index) => !fenced[index] && line.trim() !== "").every(has);
+	const next = lines.map((line, index) => {
+		if (fenced[index] || !line.trim()) return line;
 		if (all) {
 			const at = line.indexOf(prefix, line.length - line.trimStart().length);
 			return at >= 0 ? line.slice(0, at) + line.slice(at + prefix.length) : line;
@@ -141,8 +166,9 @@ export function toggleLinePrefix(text: string, from: number, to: number, prefix:
 export function addLinePrefix(text: string, from: number, to: number, prefix: string): TextEdit {
 	const block = expandToLines(text, from, to);
 	const lines = text.slice(block.from, block.to).split("\n");
-	const next = lines.map((line) => {
-		if (!line.trim()) return line;
+	const fenced = fenceMask(lines);
+	const next = lines.map((line, index) => {
+		if (fenced[index] || !line.trim()) return line;
 		if (line.trimStart().startsWith(prefix)) return line;
 		const indent = /^\s*/.exec(line)?.[0] ?? "";
 		return `${indent}${prefix}${line.slice(indent.length)}`;

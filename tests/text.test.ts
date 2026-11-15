@@ -61,6 +61,12 @@ describe("setHeading", () => {
 	it("turns a heading back into a paragraph", () => {
 		expect(setHeading("## one", 0, 0, 0).text).toBe("one");
 	});
+
+	it("leaves fenced code blocks untouched", () => {
+		const text = "```\nconst x = 1;\n```\n## title";
+		expect(setHeading(text, 0, text.length, 1).text).toBe("```\nconst x = 1;\n```\n# title");
+		expect(addLinePrefix(text, 0, text.length, "- [ ] ").text).toBe("```\nconst x = 1;\n```\n- [ ] ## title");
+	});
 });
 
 describe("toggleLinePrefix", () => {
@@ -147,6 +153,13 @@ describe("HTML formatting", () => {
 	it("removes colour from two adjacent spans without corrupting the boundary", () => {
 		const text = '<span style="color: #C00000">a</span><span style="color: #0070C0">b</span>';
 		expect(applyColor(text, 0, text.length, null).text).toBe("ab");
+	});
+
+	it("leaves a selection inside a tag attribute untouched", () => {
+		const text = '<span style="color: red">hello</span>';
+		const at = text.indexOf("red");
+		expect(applyColor(text, at, at + 3, "#00B050").text).toBe(text);
+		expect(clearHtml(text, at, at + 3).text).toBe(text);
 	});
 
 	it("wraps a highlight in a mark", () => {
