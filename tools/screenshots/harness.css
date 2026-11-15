@@ -1,0 +1,142 @@
+/* Dev harness: the ribbon in a browser window, with Obsidian's theme variables. */
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+	color: var(--text-normal);
+	background: var(--background-primary);
+	--font-interface: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+	--font-monospace: "JetBrains Mono", Menlo, monospace;
+	--font-ui-small: 13px;
+	--font-ui-smaller: 12px;
+	--radius-s: 4px;
+	--radius-m: 8px;
+	--shadow-s: 0 1px 2px rgba(0, 0, 0, 0.08);
+	--shadow-l: 0 8px 24px rgba(0, 0, 0, 0.16);
+	--size-4-2: 8px;
+	--icon-color: var(--text-muted);
+	--icon-color-hover: var(--text-normal);
+}
+
+body.theme-light {
+	--background-primary: #ffffff;
+	--background-primary-alt: #fafafa;
+	--background-secondary: #f6f5f8;
+	--background-secondary-alt: #efeef2;
+	--background-modifier-border: #e0dfe6;
+	--background-modifier-border-hover: #c8c8c8;
+	--background-modifier-hover: rgba(28, 22, 44, 0.06);
+	--background-modifier-active-hover: rgba(28, 22, 44, 0.1);
+	--background-modifier-form-field: #ffffff;
+	--text-normal: #222222;
+	--text-muted: #5c5c5c;
+	--text-faint: #9b9b9b;
+	--text-on-accent: #ffffff;
+	--interactive-accent: hsl(258, 88%, 62%);
+	--interactive-accent-hover: hsl(258, 88%, 56%);
+	--text-accent: hsl(258, 70%, 55%);
+	--color-red: #e93147;
+	--color-orange: #ec7500;
+	--color-yellow: #e0ac00;
+	--color-green: #08b94e;
+	--color-cyan: #00bfbc;
+	--color-blue: #086ddd;
+	--color-purple: #7852ee;
+	--color-pink: #d53984;
+	--divider-color: var(--background-modifier-border);
+}
+
+body.theme-dark {
+	--background-primary: #1e1e1e;
+	--background-primary-alt: #242424;
+	--background-secondary: #26262a;
+	--background-secondary-alt: #2c2c31;
+	--background-modifier-border: #36363c;
+	--background-modifier-border-hover: #4a4a4a;
+	--background-modifier-hover: rgba(255, 255, 255, 0.07);
+	--background-modifier-active-hover: rgba(255, 255, 255, 0.1);
+	--background-modifier-form-field: #2a2a2a;
+	--text-normal: #dadada;
+	--text-muted: #a3a3a3;
+	--text-faint: #6f6f6f;
+	--text-on-accent: #ffffff;
+	--interactive-accent: hsl(258, 88%, 70%);
+	--interactive-accent-hover: hsl(258, 88%, 64%);
+	--text-accent: hsl(258, 88%, 76%);
+	--color-red: #fb464c;
+	--color-orange: #e9973f;
+	--color-yellow: #e0ac00;
+	--color-green: #44cf6e;
+	--color-cyan: #53dfdd;
+	--color-blue: #027aff;
+	--color-purple: #a882ff;
+	--color-pink: #fa99cd;
+	--divider-color: var(--background-modifier-border);
+}
+
+.app-container {
+	display: flex;
+	flex-direction: column;
+	width: 100vw;
+	height: 100vh;
+	overflow: hidden;
+}
+
+.horizontal-main-container {
+	display: flex;
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+.mock-sidebar {
+	width: 220px;
+	flex: 0 0 auto;
+	padding: 10px 12px;
+	border-right: 1px solid var(--background-modifier-border);
+	background: var(--background-secondary-alt);
+	font-size: 12px;
+	color: var(--text-muted);
+}
+
+.mock-sidebar div {
+	padding: 4px 6px;
+	border-radius: 4px;
+}
+
+.mock-sidebar div.is-active {
+	background: var(--background-modifier-hover);
+	color: var(--text-normal);
+}
+
+.mock-editor {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: 26px 44px;
+	overflow: hidden;
+}
+
+.mock-editor h1 {
+	margin: 0 0 10px;
+	font-size: 26px;
+}
+
+.mock-editor p {
+	max-width: 640px;
+	margin: 0 0 10px;
+	font-size: 14px;
+	line-height: 1.6;
+	color: var(--text-muted);
+}
+
+.svg-icon {
+	width: 16px;
+	height: 16px;
+	stroke-width: 1.75;
+}
+
+body.is-narrow .mock-sidebar {
+	display: none;
+}

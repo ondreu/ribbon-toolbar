@@ -1,0 +1,33 @@
+{
+  "name": "ribbon-toolbar",
+  "version": "0.1.0",
+  "description": "An Office-style ribbon for Obsidian: tabs, groups and buttons you can customise.",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc --noEmit && node esbuild.config.mjs production",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "tsc --noEmit && eslint . && vitest run && node esbuild.config.mjs production",
+    "harness": "node scripts/build-harness.mjs",
+    "version:bump": "node scripts/bump-version.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.24.0",
+    "@typescript-eslint/parser": "^8.24.0",
+    "esbuild": "^0.25.0",
+    "eslint": "^9.20.0",
+    "eslint-plugin-obsidianmd": "^0.4.1",
+    "lucide-static": "^1.73.0",
+    "obsidian": "latest",
+    "tslib": "^2.8.1",
+    "typescript": "~5.7.0",
+    "vitest": "^2.1.0"
+  }
+}

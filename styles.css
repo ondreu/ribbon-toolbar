@@ -1,0 +1,970 @@
+/*
+ * Ribbon toolbar
+ *
+ * Two ribbon heights, driven by two custom properties:
+ *   full     three rows of 24 px small buttons = 96 px of ribbon
+ *   compact  two rows of 22 px small buttons    = 66 px of ribbon (a third shorter)
+ * A large button spans every row; a run of small buttons stacks.
+ *
+ * Everything is themed with Obsidian's own variables, so light, dark and community themes
+ * all work. No colour is hard-coded except the icon tints, which map to the theme palette
+ * through color-mix.
+ */
+
+.rtb {
+	--rtb-row-h: 24px;
+	--rtb-rows: 3;
+	--rtb-label-h: 18px;
+	--rtb-body-h: calc(var(--rtb-rows) * var(--rtb-row-h) + var(--rtb-label-h) + 6px);
+	--rtb-large-h: calc(var(--rtb-rows) * var(--rtb-row-h) + 2px);
+	--rtb-bg: var(--background-secondary);
+	--rtb-tab-bg: var(--background-secondary-alt, var(--background-secondary));
+	--rtb-border: var(--background-modifier-border);
+	--rtb-hover: var(--background-modifier-hover);
+	--rtb-pressed: var(--background-modifier-active-hover, var(--background-modifier-hover));
+	--rtb-ink: 100%;
+	--rtb-ink-mix: white;
+
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	flex: 0 0 auto;
+	background: var(--rtb-bg);
+	border-bottom: 1px solid var(--rtb-border);
+	font-family: var(--font-interface);
+	font-size: 12px;
+	color: var(--text-normal);
+	z-index: 21;
+}
+
+.rtb.is-compact {
+	--rtb-row-h: 22px;
+	--rtb-rows: 2;
+	--rtb-label-h: 16px;
+}
+
+.theme-light .rtb {
+	--rtb-ink: 62%;
+	--rtb-ink-mix: black;
+}
+
+.theme-dark .rtb {
+	--rtb-ink: 82%;
+	--rtb-ink-mix: white;
+}
+
+/* ---------- tab row ---------- */
+
+.rtb-tabrow {
+	position: relative;
+	display: flex;
+	align-items: stretch;
+	gap: 4px;
+	height: 30px;
+	padding: 0 6px;
+	background: var(--rtb-tab-bg);
+}
+
+/* Frameless windows draw their controls over the top of the app. The ribbon takes that strip
+   over, like the ribbon in OneNote Style: the tab row becomes the drag area and reserves room
+   for the window buttons, so the collapse control is not buried under Close. */
+body.rtb-has-topbar .titlebar-button-container {
+	z-index: 1000;
+}
+
+body.is-hidden-frameless:not(.is-fullscreen) .rtb-tabrow {
+	height: var(--header-height, 40px);
+	-webkit-app-region: drag;
+}
+
+body.is-hidden-frameless:not(.is-fullscreen) .rtb-tabrow > *:not(.rtb-tabrow-spacer) {
+	-webkit-app-region: no-drag;
+}
+
+body.is-hidden-frameless.mod-linux:not(.is-fullscreen) .rtb-tabrow,
+body.is-hidden-frameless.mod-windows:not(.is-fullscreen) .rtb-tabrow {
+	padding-right: max(var(--frame-right-space, 0px), 145px);
+}
+
+body.is-hidden-frameless.mod-macos:not(.is-fullscreen) .rtb-tabrow {
+	padding-left: max(var(--frame-left-space, 0px), 80px);
+}
+
+.rtb-qat {
+	display: flex;
+	align-items: center;
+	gap: 1px;
+	margin-right: 2px;
+}
+
+.rtb-tool {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	border: none;
+	border-radius: 4px;
+	background: transparent;
+	box-shadow: none;
+	color: var(--text-muted);
+	cursor: pointer;
+}
+
+.rtb-tool:hover {
+	background: var(--rtb-hover);
+	color: var(--text-normal);
+}
+
+.rtb-tool svg {
+	width: 15px;
+	height: 15px;
+}
+
+.rtb-tabs {
+	display: flex;
+	align-items: stretch;
+	gap: 2px;
+	padding-top: 4px;
+	min-width: 0;
+	flex: 0 1 auto;
+	overflow: hidden;
+}
+
+.rtb-tab {
+	position: relative;
+	display: flex;
+	align-items: center;
+	flex: 0 0 auto;
+	padding: 0 12px;
+	font-size: 13px;
+	white-space: nowrap;
+	color: var(--text-muted);
+	border-radius: 5px 5px 0 0;
+	cursor: pointer;
+}
+
+.rtb-tab:hover {
+	background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.rtb-tab.is-active {
+	background: var(--rtb-bg);
+	color: var(--text-normal);
+	font-weight: 600;
+}
+
+/* Fluent-style marker under the active tab, in the theme's accent colour. */
+.rtb-tab.is-active::after {
+	content: "";
+	position: absolute;
+	left: 6px;
+	right: 6px;
+	bottom: 0;
+	height: 3px;
+	border-radius: 2px 2px 0 0;
+	background: var(--interactive-accent);
+}
+
+.rtb.is-collapsed .rtb-tab.is-active {
+	background: transparent;
+}
+
+.rtb-tab.is-overflow {
+	display: none;
+}
+
+.rtb-tab.is-squeezed {
+	display: block;
+	flex: 0 1 auto;
+	min-width: 0;
+	line-height: 26px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.rtb-tab.rtb-tab-more {
+	padding: 0 8px;
+}
+
+.rtb-tab.rtb-tab-more svg {
+	width: 14px;
+	height: 14px;
+}
+
+.rtb-tab.rtb-tab-add {
+	padding: 0 8px;
+	color: var(--text-faint);
+}
+
+.rtb-tabrow-spacer {
+	flex: 1 1 16px;
+	min-width: 16px;
+}
+
+.rtb-tabrow-end {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	flex: 0 0 auto;
+}
+
+.rtb-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	height: 24px;
+	padding: 0 7px;
+	border: none;
+	border-radius: 4px;
+	background: transparent;
+	box-shadow: none;
+	color: var(--text-muted);
+	cursor: pointer;
+}
+
+.rtb-toggle:hover {
+	background: var(--rtb-hover);
+	color: var(--text-normal);
+}
+
+.rtb-toggle svg {
+	width: 15px;
+	height: 15px;
+}
+
+.rtb.is-editing .rtb-toggle,
+.rtb-toggle.rtb-done {
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+}
+
+.rtb-toggle-label {
+	font-size: 12px;
+	font-weight: 600;
+}
+
+/* ---------- ribbon body ---------- */
+
+.rtb-ribbon {
+	position: relative;
+	display: flex;
+	align-items: stretch;
+	height: var(--rtb-body-h);
+	padding: 4px 4px 0;
+	background: var(--rtb-bg);
+	overflow: hidden; /* never a scroll bar: groups shrink and collapse instead */
+}
+
+.rtb.is-collapsed .rtb-ribbon {
+	display: none;
+}
+
+.rtb-strip {
+	display: flex;
+	align-items: stretch;
+	flex: 1 1 0;
+	min-width: 0;
+	overflow: hidden;
+}
+
+.rtb-strip.is-measuring {
+	visibility: hidden;
+}
+
+.rtb-group,
+.rtb-more {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	flex: 0 0 auto;
+	padding: 0 8px;
+	border-radius: 4px;
+}
+
+/* Thin divider between groups. */
+.rtb-strip > .rtb-group + .rtb-group::before,
+.rtb-strip > .rtb-group + .rtb-more::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 4px;
+	bottom: 4px;
+	width: 1px;
+	background: var(--rtb-border);
+}
+
+.rtb-group-body {
+	display: flex;
+	align-items: flex-start;
+	flex: 1 1 auto;
+	gap: 2px;
+}
+
+.rtb-group-label {
+	height: var(--rtb-label-h);
+	line-height: calc(var(--rtb-label-h) - 2px);
+	font-size: 11px;
+	font-weight: 500;
+	letter-spacing: 0.01em;
+	text-align: center;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	color: var(--text-muted);
+}
+
+.rtb-stack {
+	display: flex;
+	flex-direction: column;
+}
+
+/* Buttons in one column share its width, so the group reads as a grid instead of a ragged pile. */
+.rtb-stack > button.rtb-btn.is-small {
+	width: 100%;
+}
+
+/* ---------- buttons ---------- */
+
+.rtb button.rtb-btn {
+	display: inline-flex;
+	align-items: center;
+	margin: 0;
+	padding: 0;
+	border: 1px solid transparent;
+	border-radius: 4px;
+	background: transparent;
+	box-shadow: none;
+	color: var(--text-normal);
+	font-family: var(--font-interface);
+	font-size: 12px;
+	font-weight: 400;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.rtb button.rtb-btn:hover {
+	background: var(--rtb-hover);
+}
+
+.rtb button.rtb-btn:active,
+.rtb button.rtb-btn.is-open {
+	background: var(--rtb-pressed);
+}
+
+.rtb button.rtb-btn:focus-visible {
+	outline: 2px solid var(--interactive-accent);
+	outline-offset: -2px;
+}
+
+.rtb-btn-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	color: var(--icon-color, var(--text-muted));
+}
+
+.rtb-btn:hover .rtb-btn-icon:not([data-color]) {
+	color: var(--icon-color-hover, var(--text-normal));
+}
+
+/* Small: icon + label. */
+.rtb button.rtb-btn.is-small {
+	justify-content: flex-start;
+	gap: 6px;
+	height: var(--rtb-row-h);
+	max-width: 160px;
+	padding: 0 7px 0 5px;
+}
+
+.rtb-btn.is-small .rtb-btn-icon svg,
+.rtb-btn.is-icon .rtb-btn-icon svg {
+	width: 16px;
+	height: 16px;
+}
+
+/* Icon-only. */
+.rtb button.rtb-btn.is-icon {
+	justify-content: center;
+	width: 28px;
+	height: var(--rtb-row-h);
+	padding: 0;
+}
+
+/* Large: icon above the label. */
+.rtb button.rtb-btn.is-large {
+	flex-direction: column;
+	justify-content: flex-start;
+	gap: 2px;
+	height: var(--rtb-large-h);
+	min-width: 46px;
+	max-width: 84px;
+	padding: 5px 5px 2px;
+	line-height: 1.15;
+	text-align: center;
+	white-space: normal;
+}
+
+.rtb-btn.is-large .rtb-btn-icon {
+	height: 26px;
+}
+
+.rtb-btn.is-large .rtb-btn-icon svg {
+	width: 24px;
+	height: 24px;
+	stroke-width: 1.5;
+}
+
+.rtb-btn.is-large .rtb-btn-label {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	max-width: 72px;
+	overflow: hidden;
+	overflow-wrap: normal;
+}
+
+.rtb.is-compact .rtb-btn.is-large {
+	gap: 1px;
+	padding-top: 3px;
+}
+
+.rtb.is-compact .rtb-btn.is-large .rtb-btn-icon {
+	height: 20px;
+}
+
+.rtb.is-compact .rtb-btn.is-large .rtb-btn-icon svg {
+	width: 19px;
+	height: 19px;
+}
+
+.rtb.is-compact .rtb-btn.is-large .rtb-btn-label {
+	-webkit-line-clamp: 1;
+	font-size: 11px;
+}
+
+/* A collapsed group is one dropdown button, not a large icon with a label squeezed under it:
+   at two rows there is no height for three stacked lines, and the caret was clipped. */
+.rtb-group.is-collapsed > button.rtb-btn.is-large {
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	height: var(--rtb-large-h);
+	min-width: 58px;
+	max-width: 112px;
+	padding: 0 6px;
+	border-color: var(--rtb-border);
+}
+
+.rtb-group.is-collapsed > button.rtb-btn.is-large .rtb-btn-icon {
+	height: auto;
+}
+
+.rtb-group.is-collapsed > button.rtb-btn.is-large .rtb-btn-icon svg {
+	width: 18px;
+	height: 18px;
+}
+
+.rtb-group.is-collapsed > button.rtb-btn.is-large .rtb-btn-label {
+	display: block;
+	-webkit-line-clamp: initial;
+	max-width: 78px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.rtb-group.is-collapsed > button.rtb-btn.is-large .rtb-btn-caret {
+	margin-top: 0;
+}
+
+/* The compact ribbon's "small" level: a little tighter, not a different control. */
+.rtb.is-compact .rtb-group.is-tight button.rtb-btn.is-small {
+	gap: 4px;
+	padding: 0 4px 0 3px;
+	font-size: 11px;
+}
+
+.rtb.is-compact .rtb-group.is-tight button.rtb-btn.is-small .rtb-btn-icon svg {
+	width: 15px;
+	height: 15px;
+}
+
+.rtb.is-compact .rtb-group.is-tight button.rtb-btn.is-small .rtb-btn-label {
+	max-width: 140px;
+}
+
+.rtb-btn-caret {
+	display: inline-flex;
+	margin-top: -2px;
+	color: var(--text-muted);
+}
+
+.rtb-btn-caret svg {
+	width: 11px;
+	height: 11px;
+}
+
+.rtb-btn-icon.is-glyph {
+	align-items: center;
+	justify-content: center;
+	width: 16px;
+	height: 16px;
+	border-radius: 4px;
+	background: var(--background-modifier-border);
+	font-size: 10px;
+	font-weight: 600;
+	color: var(--text-muted);
+}
+
+.rtb-btn.is-large .rtb-btn-icon.is-glyph {
+	width: 24px;
+	height: 24px;
+	border-radius: 6px;
+	font-size: 13px;
+}
+
+.rtb button.rtb-btn.is-disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+
+.rtb button.rtb-btn.is-disabled:hover {
+	background: transparent;
+}
+
+/* ---------- icon colours ---------- */
+
+.rtb-btn-icon[data-color="accent"] {
+	color: color-mix(in srgb, var(--interactive-accent) var(--rtb-ink), var(--rtb-ink-mix));
+}
+
+.rtb-btn-icon[data-color="red"] {
+	color: color-mix(in srgb, var(--color-red) var(--rtb-ink), var(--rtb-ink-mix));
+}
+
+.rtb-btn-icon[data-color="orange"] {
+	color: color-mix(in srgb, var(--color-orange) var(--rtb-ink), var(--rtb-ink-mix));
+}
+
+.rtb-btn-icon[data-color="yellow"] {
+	color: color-mix(in srgb, var(--color-yellow) var(--rtb-ink), var(--rtb-ink-mix));
+}
+
+.rtb-btn-icon[data-color="green"] {
+	color: color-mix(in srgb, var(--color-green) var(--rtb-ink), var(--rtb-ink-mix));
+}
+
+.rtb-btn-icon[data-color="cyan"] {
+	color: color-mix(in srgb, var(--color-cyan) var(--rtb-ink), var(--rtb-ink-mix));
+}
+
+.rtb-btn-icon[data-color="blue"] {
+	color: color-mix(in srgb, var(--color-blue) var(--rtb-ink), var(--rtb-ink-mix));
+}
+
+.rtb-btn-icon[data-color="purple"] {
+	color: color-mix(in srgb, var(--color-purple) var(--rtb-ink), var(--rtb-ink-mix));
+}
+
+.rtb-btn-icon[data-color="pink"] {
+	color: color-mix(in srgb, var(--color-pink) var(--rtb-ink), var(--rtb-ink-mix));
+}
+
+.theme-light .rtb-btn-icon[data-color="yellow"] {
+	--rtb-ink: 48%;
+}
+
+.theme-light .rtb-btn-icon[data-color="orange"],
+.theme-light .rtb-btn-icon[data-color="cyan"],
+.theme-light .rtb-btn-icon[data-color="green"] {
+	--rtb-ink: 56%;
+}
+
+.menu-item-icon[data-rtb-color="accent"] {
+	color: var(--interactive-accent);
+}
+
+.menu-item-icon[data-rtb-color="red"] {
+	color: var(--color-red);
+}
+
+.menu-item-icon[data-rtb-color="orange"] {
+	color: var(--color-orange);
+}
+
+.menu-item-icon[data-rtb-color="yellow"] {
+	color: var(--color-yellow);
+}
+
+.menu-item-icon[data-rtb-color="green"] {
+	color: var(--color-green);
+}
+
+.menu-item-icon[data-rtb-color="cyan"] {
+	color: var(--color-cyan);
+}
+
+.menu-item-icon[data-rtb-color="blue"] {
+	color: var(--color-blue);
+}
+
+.menu-item-icon[data-rtb-color="purple"] {
+	color: var(--color-purple);
+}
+
+.menu-item-icon[data-rtb-color="pink"] {
+	color: var(--color-pink);
+}
+
+.menu-item-icon[data-rtb-color] svg {
+	fill: currentColor;
+}
+
+/* ---------- empty states and customise mode ---------- */
+
+.rtb button.rtb-empty {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	align-self: flex-start;
+	margin: 8px 4px 0;
+	padding: 4px 10px;
+	border: 1px dashed var(--rtb-border);
+	border-radius: 4px;
+	background: transparent;
+	color: var(--text-muted);
+	font-size: 12px;
+	cursor: pointer;
+}
+
+.rtb-empty-icon {
+	display: inline-flex;
+}
+
+.rtb-empty-icon svg {
+	width: 16px;
+	height: 16px;
+}
+
+.rtb-empty-hint {
+	align-self: center;
+	margin-bottom: 12px;
+	font-size: 12px;
+	color: var(--text-faint);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.rtb button.rtb-btn.rtb-add {
+	border: 1px dashed var(--rtb-border);
+	color: var(--text-muted);
+}
+
+.rtb button.rtb-btn.rtb-add-inline {
+	align-self: flex-start;
+	margin-left: 2px;
+	border-style: dashed;
+}
+
+.rtb.is-editing .rtb-group {
+	outline: 1px dashed color-mix(in srgb, var(--interactive-accent) 40%, transparent);
+	outline-offset: -2px;
+	border-radius: 6px;
+}
+
+.rtb.is-editing .rtb-group-label {
+	color: var(--text-normal);
+	cursor: grab;
+}
+
+.rtb.is-editing .rtb-btn {
+	cursor: grab;
+}
+
+/* ---------- popovers ---------- */
+
+.rtb-popover {
+	position: fixed;
+	z-index: 1000;
+	box-sizing: border-box;
+	padding: 6px;
+	border: 1px solid var(--rtb-border);
+	border-radius: 8px;
+	background: var(--background-primary);
+	box-shadow: var(--shadow-l);
+	overflow-y: auto;
+	color: var(--text-normal);
+}
+
+.rtb-popover-group {
+	display: flex;
+	align-items: stretch;
+}
+
+.rtb-popover-group .rtb-group {
+	padding: 0 2px;
+}
+
+.rtb-popover-group .rtb-group-label {
+	display: none;
+}
+
+.rtb-popover-more {
+	width: 340px;
+	max-width: calc(100vw - 16px);
+}
+
+.rtb-more-group + .rtb-more-group {
+	margin-top: 6px;
+	padding-top: 6px;
+	border-top: 1px solid var(--rtb-border);
+}
+
+.rtb-more-title {
+	padding: 2px 6px 4px;
+	font-size: 11px;
+	color: var(--text-muted);
+}
+
+.rtb-more-items {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 1px 4px;
+}
+
+.rtb-popover-more button.rtb-btn.is-small {
+	width: 100%;
+	max-width: none;
+	height: 26px;
+}
+
+.rtb-popover .rtb-empty-hint {
+	margin: 0;
+	padding: 2px 6px;
+	white-space: normal;
+	grid-column: 1 / -1;
+}
+
+/* ---------- drag and drop ---------- */
+
+.rtb.is-dragging {
+	cursor: grabbing;
+}
+
+.rtb-btn.is-drag-source {
+	opacity: 0.35;
+}
+
+.rtb-ghost {
+	position: fixed;
+	z-index: 2000;
+	pointer-events: none;
+	opacity: 0.85;
+	background: var(--background-primary);
+	border: 1px solid var(--interactive-accent);
+	border-radius: 4px;
+}
+
+.rtb-ghost-chip {
+	position: fixed;
+	z-index: 2000;
+	padding: 3px 8px;
+	pointer-events: none;
+	border-radius: 4px;
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	font-size: 12px;
+}
+
+.rtb-drop-line {
+	position: fixed;
+	z-index: 2000;
+	display: none;
+	pointer-events: none;
+	background: var(--interactive-accent);
+	border-radius: 1px;
+}
+
+.rtb-group.is-drop-target {
+	background: color-mix(in srgb, var(--interactive-accent) 12%, transparent);
+}
+
+/* ---------- dialogs ---------- */
+
+.rtb-dialog .rtb-dialog-input {
+	width: 100%;
+	margin: 4px 0 12px;
+}
+
+.rtb-dialog-footer {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-top: 12px;
+}
+
+.rtb-table-preview {
+	margin: 4px 0 12px;
+	padding: 8px;
+	border-radius: 4px;
+	background: var(--background-secondary);
+	color: var(--text-muted);
+	font-family: var(--font-monospace);
+	font-size: 11px;
+	white-space: pre;
+	overflow: hidden;
+}
+
+.rtb-symbol-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+	gap: 4px;
+	margin-top: 8px;
+}
+
+.rtb-symbol {
+	height: 36px;
+	font-size: 17px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	background: var(--background-secondary);
+	cursor: pointer;
+}
+
+.rtb-symbol:hover {
+	background: var(--background-modifier-hover);
+}
+
+.rtb-color-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(120px, 1fr));
+	gap: 4px;
+	margin-top: 8px;
+}
+
+.rtb-color {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 5px 7px;
+	border: 1px solid transparent;
+	border-radius: 4px;
+	background: transparent;
+	color: var(--text-normal);
+	text-align: left;
+	cursor: pointer;
+}
+
+.rtb-color:hover {
+	background: var(--background-modifier-hover);
+}
+
+.rtb-color-dot {
+	width: 18px;
+	height: 18px;
+	flex: 0 0 auto;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+}
+
+.rtb-color-dot.is-none {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 13px;
+	color: var(--text-muted);
+	background: var(--background-secondary);
+}
+
+.rtb-color-name {
+	font-size: 12px;
+}
+
+/* ---------- pickers ---------- */
+
+.rtb-picker-item {
+	display: flex;
+	align-items: baseline;
+	gap: 10px;
+}
+
+.rtb-picker-name {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.rtb-picker-id {
+	flex: 0 0 auto;
+	font-size: 11px;
+	color: var(--text-faint);
+}
+
+.rtb-icon-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.rtb-icon-item-icon {
+	display: inline-flex;
+}
+
+/* ---------- settings ---------- */
+
+.rtb-detect {
+	margin: 6px 0 18px;
+	padding: 8px 10px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	background: var(--background-secondary);
+}
+
+.rtb-detect-title {
+	margin-bottom: 6px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--text-muted);
+}
+
+.rtb-detect-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 2px 0;
+	font-size: 12px;
+}
+
+.rtb-detect-dot {
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: var(--text-faint);
+}
+
+.rtb-detect-dot.is-on {
+	background: var(--color-green);
+}
+
+.rtb-detect-state {
+	margin-left: auto;
+	color: var(--text-faint);
+}
+
+/* ---------- narrow window ---------- */
+
+@media (max-width: 700px) {
+	.rtb-ribbon {
+		padding-right: 6px;
+	}
+
+	.rtb-group,
+	.rtb-more {
+		padding: 0 6px;
+	}
+}
