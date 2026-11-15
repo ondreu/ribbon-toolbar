@@ -22,6 +22,7 @@ const SY = "synonym:";
 const LT = "obsidian-languagetool-plugin:";
 const AT = "table-editor-obsidian:";
 const K = "obsidian-kanban:";
+const GIT = "obsidian-git:";
 
 type Extra = { requires?: FeatureKey; when?: "spreadsheet" };
 
@@ -343,6 +344,35 @@ const TABS: RibbonTab[] = [
 			], "last"),
 		],
 		{ requires: "tasks" },
+	),
+
+	TAB(
+		"git",
+		"Git",
+		[
+			G(
+				"git-sync",
+				"Sync",
+				[
+					L(GIT + "push", "Commit and sync", "refresh-cw", "green"),
+					S(GIT + "pull", "Pull", "arrow-down-to-line"),
+					S(GIT + "push2", "Push", "arrow-up-from-line"),
+					S(GIT + "commit", "Commit all", "git-commit-horizontal"),
+				],
+				"first",
+			),
+			G(
+				"git-repository",
+				"Repository",
+				[
+					S(GIT + "open-git-view", "Source control", "git-branch"),
+					S(GIT + "open-history-view", "History", "history"),
+					S(GIT + "fetch", "Fetch", "cloud-download"),
+				],
+				"last",
+			),
+		],
+		{ requires: "git" },
 	),
 
 	TAB("view", "View", [

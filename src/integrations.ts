@@ -42,6 +42,8 @@ export interface Detected {
 	languagetool: boolean;
 	advancedTables: boolean;
 	kanban: boolean;
+	/** Obsidian Git registers `obsidian-git:push` (commit-and-sync); the command is the contract. */
+	git: boolean;
 }
 
 export function detect(app: App): Detected {
@@ -56,6 +58,7 @@ export function detect(app: App): Detected {
 		languagetool: !!findCommand(app, "obsidian-languagetool-plugin:ltcheck-text"),
 		advancedTables: !!findCommand(app, "table-editor-obsidian:format-table"),
 		kanban: !!findCommand(app, "obsidian-kanban:create-new-kanban-board"),
+		git: !!findCommand(app, "obsidian-git:push"),
 	};
 }
 
@@ -73,6 +76,7 @@ export function featureSet(app: App, settings: RibbonSettings, detected = detect
 	if (detected.languagetool) features.add("languagetool");
 	if (detected.advancedTables) features.add("advanced-tables");
 	if (detected.kanban) features.add("kanban");
+	if (detected.git) features.add("git");
 	return features;
 }
 

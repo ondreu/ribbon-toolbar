@@ -50,6 +50,7 @@ const features = new Set<string>([
 	"languagetool",
 	"advanced-tables",
 	"kanban",
+	"git",
 ]);
 if (params.get("html") === "0") features.delete("html");
 

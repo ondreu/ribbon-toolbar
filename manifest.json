@@ -1,9 +1,9 @@
 {
   "id": "ribbon-toolbar",
   "name": "Ribbon toolbar",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "minAppVersion": "1.8.7",
-  "description": "An Office-style ribbon with customisable tabs, groups and buttons in two heights, plus integrations for Tasks, Markdown Spreadsheets, Templates, Templater, LanguageTool, Synonym, Advanced Tables, Excalidraw, Bases and Kanban.",
+  "description": "An Office-style ribbon with customisable tabs, groups and buttons in two heights, plus integrations for Tasks, Markdown Spreadsheets, Templates, Templater, LanguageTool, Synonym, Advanced Tables, Excalidraw, Bases, Kanban and Git.",
   "author": "Ondrej Uhnavy",
   "authorUrl": "https://github.com/ondreu",
   "isDesktopOnly": true

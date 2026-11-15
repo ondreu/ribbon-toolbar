@@ -194,6 +194,20 @@ describe("default integrations", () => {
 			true,
 		);
 	});
+
+	it("shows the Git tab only when Obsidian Git is present", () => {
+		const layout = defaultLayout();
+		expect(visibleTabs(layout, caps()).some((tab) => tab.id === "git")).toBe(false);
+		expect(visibleTabs(layout, caps(["git"])).some((tab) => tab.id === "git")).toBe(true);
+		const git = layout.tabs.find((tab) => tab.id === "git");
+		const sync = git?.groups.find((group) => group.id === "git-sync");
+		expect(sync ? visibleItems(sync, caps(["git"])).map((entry) => entry.label) : []).toEqual([
+			"Commit and sync",
+			"Pull",
+			"Push",
+			"Commit all",
+		]);
+	});
 });
 
 describe("tab guards", () => {

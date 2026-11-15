@@ -65,3 +65,17 @@ describe("Review and table integrations", () => {
 		}
 	});
 });
+
+describe("Git integration", () => {
+	it("uses the commit-and-sync command as the capability signal", () => {
+		const app = appWithCommands(["obsidian-git:push", "obsidian-git:pull"]);
+		const detected = detect(app);
+		expect(detected.git).toBe(true);
+		expect(featureSet(app, settings).has("git")).toBe(true);
+	});
+
+	it("does not offer Git when the plugin is absent", () => {
+		const features = featureSet(appWithCommands([]), settings);
+		expect(features.has("git")).toBe(false);
+	});
+});

@@ -12,10 +12,9 @@ AI integrations.
 - **Two heights.** `Compact` is two rows of buttons (66 px of ribbon, a third shorter than the
   full one); `Full` is three rows (96 px) like the ribbon in OneNote Style. Both keep labels.
 - **Everything is a command.** Any command from Obsidian, its core plugins or a community plugin
-  can be put on the ribbon. Buttons whose plugin is missing are greyed out with the reason, and
-  tabs that only make sense with an optional plugin (`Tasks`, `Excalidraw`, `Templater`,
-  `Spreadsheets`) are
-  hidden until that plugin is installed.
+  can be put on the ribbon. Buttons whose command is unavailable are greyed out with the reason,
+  and tabs that only make sense with an optional plugin (`Tasks`, `Git`, `Excalidraw`, `Templater`,
+  `Spreadsheets`) are hidden until that plugin is installed.
 - **Customise in place.** Right-click a tab, group or button to rename it, change its icon or
   colour, move it, or remove it. Customise mode adds drag and drop and `+` tiles. The layout can
   be exported to a JSON file and imported again.
@@ -60,10 +59,11 @@ AI integrations.
 | **LanguageTool** | Check text (whole note or selection) and clear its suggestion underlines. |
 | **Advanced Tables** | Format the table at the cursor. |
 | **Kanban** | New board, next to New canvas and New base. |
+| **Obsidian Git** | A dedicated `Git` tab: commit and sync, pull, push, commit all, source control, history and fetch. |
 
 Every integration is detected from its plugin id or its command. If the plugin is missing or
-turned off, its buttons — and a group left with no buttons — are hidden rather than shown greyed
-out.
+turned off, its buttons — and a tab or group left with no buttons — are hidden rather than shown
+greyed out.
 
 The Markdown Spreadsheets integration is a duck-typed, versioned contract (`ribbonHostApi`), so
 either plugin can be installed without the other. If Ribbon toolbar is disabled, the spreadsheet
@@ -105,10 +105,10 @@ is how the layout is checked at 1400, 900 and 760 px before a vault test.
 The release tag must equal `manifest.json` character for character, with no `v` prefix:
 
 ```bash
-node scripts/bump-version.mjs 0.2.1
+node scripts/bump-version.mjs 0.2.2
 npm run check
-git commit -am "Release 0.2.1" && git push
-git tag 0.2.1 && git push origin 0.2.1
+git commit -am "Release 0.2.2" && git push
+git tag 0.2.2 && git push origin 0.2.2
 ```
 
 ## Privacy
