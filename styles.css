@@ -73,8 +73,18 @@ body.rtb-has-topbar .titlebar-button-container {
 	z-index: 1000;
 }
 
+/* Match the buttons to the 32 px tab row: without this the container is 39 px and its bottom
+   seven pixels lie over the first row of ribbon buttons on the right. */
+body.rtb-has-topbar.is-hidden-frameless:not(.is-fullscreen) .titlebar-button-container.mod-right {
+	height: 32px;
+}
+
+body.rtb-has-topbar .titlebar-button-container.mod-right .titlebar-button {
+	height: 32px;
+}
+
 body.is-hidden-frameless:not(.is-fullscreen) .rtb-tabrow {
-	height: var(--header-height, 40px);
+	height: 32px;
 	-webkit-app-region: drag;
 }
 
