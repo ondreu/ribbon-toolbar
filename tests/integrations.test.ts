@@ -79,3 +79,17 @@ describe("Git integration", () => {
 		expect(features.has("git")).toBe(false);
 	});
 });
+
+describe("Advanced PDF Export integration", () => {
+	it("uses the open-panel command as the capability signal", () => {
+		const app = appWithCommands(["advanced-pdf-export:open-panel"]);
+		const detected = detect(app);
+		expect(detected.advancedPdf).toBe(true);
+		expect(featureSet(app, settings).has("advanced-pdf")).toBe(true);
+	});
+
+	it("does not offer the advanced PDF button when the plugin is absent", () => {
+		const features = featureSet(appWithCommands(["workspace:export-pdf"]), settings);
+		expect(features.has("advanced-pdf")).toBe(false);
+	});
+});

@@ -44,6 +44,7 @@ export const FEATURE_KEYS = [
 	"advanced-tables",
 	"kanban",
 	"git",
+	"advanced-pdf",
 ] as const;
 export type FeatureKey = (typeof FEATURE_KEYS)[number];
 export type ContextKey = "spreadsheet";

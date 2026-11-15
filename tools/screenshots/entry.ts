@@ -51,6 +51,7 @@ const features = new Set<string>([
 	"advanced-tables",
 	"kanban",
 	"git",
+	"advanced-pdf",
 ]);
 if (params.get("html") === "0") features.delete("html");
 

@@ -208,6 +208,20 @@ describe("default integrations", () => {
 			"Commit all",
 		]);
 	});
+
+	it("adds Advanced PDF to Utilities only when its plugin is present", () => {
+		const utilities = defaultLayout().tabs.find((tab) => tab.id === "utilities");
+		const file = utilities?.groups.find((group) => group.id === "util-file");
+		expect(file ? visibleItems(file, caps()).map((entry) => entry.label) : []).toEqual([
+			"Rename",
+			"Copy path",
+			"Copy link",
+			"Export PDF",
+		]);
+		expect(file ? visibleItems(file, caps(["advanced-pdf"])).map((entry) => entry.label) : []).toContain(
+			"Advanced PDF",
+		);
+	});
 });
 
 describe("tab guards", () => {

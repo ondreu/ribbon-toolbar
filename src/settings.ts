@@ -43,6 +43,7 @@ const DETECT_LABEL: Array<[keyof Detected, string]> = [
 	["advancedTables", "Advanced Tables"],
 	["kanban", "Kanban"],
 	["git", "Git"],
+	["advancedPdf", "Advanced PDF Export"],
 ];
 
 export class RibbonSettingTab extends PluginSettingTab {

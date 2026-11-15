@@ -60,6 +60,7 @@ AI integrations.
 | **Advanced Tables** | Format the table at the cursor. |
 | **Kanban** | New board, next to New canvas and New base. |
 | **Obsidian Git** | A dedicated `Git` tab: commit and sync, pull, push, commit all, source control, history and fetch. |
+| **Advanced PDF Export** | Opens its export panel from Utilities → File, next to the core Export PDF button. |
 
 Every integration is detected from its plugin id or its command. If the plugin is missing or
 turned off, its buttons — and a tab or group left with no buttons — are hidden rather than shown
@@ -106,10 +107,10 @@ is how the layout is checked at 1400, 900 and 760 px before a vault test.
 The release tag must equal `manifest.json` character for character, with no `v` prefix:
 
 ```bash
-node scripts/bump-version.mjs 0.2.6
+node scripts/bump-version.mjs 0.2.7
 npm run check
-git commit -am "Release 0.2.6" && git push
-git tag 0.2.6 && git push origin 0.2.6
+git commit -am "Release 0.2.7" && git push
+git tag 0.2.7 && git push origin 0.2.7
 ```
 
 ## Privacy

@@ -44,6 +44,8 @@ export interface Detected {
 	kanban: boolean;
 	/** Obsidian Git registers `obsidian-git:push` (commit-and-sync); the command is the contract. */
 	git: boolean;
+	/** Advanced PDF Export registers `advanced-pdf-export:open-panel`. */
+	advancedPdf: boolean;
 }
 
 export function detect(app: App): Detected {
@@ -59,6 +61,7 @@ export function detect(app: App): Detected {
 		advancedTables: !!findCommand(app, "table-editor-obsidian:format-table"),
 		kanban: !!findCommand(app, "obsidian-kanban:create-new-kanban-board"),
 		git: !!findCommand(app, "obsidian-git:push"),
+		advancedPdf: !!findCommand(app, "advanced-pdf-export:open-panel"),
 	};
 }
 
@@ -77,6 +80,7 @@ export function featureSet(app: App, settings: RibbonSettings, detected = detect
 	if (detected.advancedTables) features.add("advanced-tables");
 	if (detected.kanban) features.add("kanban");
 	if (detected.git) features.add("git");
+	if (detected.advancedPdf) features.add("advanced-pdf");
 	return features;
 }
 

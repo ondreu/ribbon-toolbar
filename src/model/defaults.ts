@@ -23,6 +23,7 @@ const LT = "obsidian-languagetool-plugin:";
 const AT = "table-editor-obsidian:";
 const K = "obsidian-kanban:";
 const GIT = "obsidian-git:";
+const PDF = "advanced-pdf-export:";
 
 type Extra = { requires?: FeatureKey; when?: "spreadsheet" };
 
@@ -449,6 +450,7 @@ const TABS: RibbonTab[] = [
 			S("workspace:copy-path", "Copy path", "copy"),
 			S("workspace:copy-url", "Copy link", "link-2"),
 			S("workspace:export-pdf", "Export PDF", "file-down"),
+			S(PDF + "open-panel", "Advanced PDF", "printer", undefined, { requires: "advanced-pdf" }),
 		]),
 	]),
 

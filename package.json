@@ -1,6 +1,6 @@
 {
   "name": "ribbon-toolbar",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "An Office-style ribbon for Obsidian: tabs, groups and buttons you can customise.",
   "license": "MIT",
   "private": true,
