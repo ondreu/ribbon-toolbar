@@ -31,7 +31,18 @@ export const STACK = 3;
 export type Priority = (typeof PRIORITIES)[number];
 export type ItemSize = (typeof SIZES)[number];
 export type ColorName = (typeof COLORS)[number];
-export type FeatureKey = "html" | "tasks" | "spreadsheet" | "excalidraw" | "bases" | "templates" | "templater";
+export type FeatureKey =
+	| "html"
+	| "tasks"
+	| "spreadsheet"
+	| "excalidraw"
+	| "bases"
+	| "templates"
+	| "templater"
+	| "thesaurus"
+	| "languagetool"
+	| "advanced-tables"
+	| "kanban";
 export type ContextKey = "spreadsheet";
 
 export interface RibbonItem {

@@ -37,6 +37,11 @@ export interface Detected {
 	templates: boolean;
 	/** Templater registers `templater-obsidian:insert-templater`; the command is the contract. */
 	templater: boolean;
+	/** Synonym registers `synonym:show`; no command means no Thesaurus button. */
+	thesaurus: boolean;
+	languagetool: boolean;
+	advancedTables: boolean;
+	kanban: boolean;
 }
 
 export function detect(app: App): Detected {
@@ -47,6 +52,10 @@ export function detect(app: App): Detected {
 		bases: !!findCommand(app, "bases:new-file"),
 		templates: !!findCommand(app, "insert-template"),
 		templater: !!findCommand(app, "templater-obsidian:insert-templater"),
+		thesaurus: !!findCommand(app, "synonym:show"),
+		languagetool: !!findCommand(app, "obsidian-languagetool-plugin:ltcheck-text"),
+		advancedTables: !!findCommand(app, "table-editor-obsidian:format-table"),
+		kanban: !!findCommand(app, "obsidian-kanban:create-new-kanban-board"),
 	};
 }
 
@@ -60,6 +69,10 @@ export function featureSet(app: App, settings: RibbonSettings, detected = detect
 	if (detected.bases) features.add("bases");
 	if (detected.templates) features.add("templates");
 	if (detected.templater) features.add("templater");
+	if (detected.thesaurus) features.add("thesaurus");
+	if (detected.languagetool) features.add("languagetool");
+	if (detected.advancedTables) features.add("advanced-tables");
+	if (detected.kanban) features.add("kanban");
 	return features;
 }
 

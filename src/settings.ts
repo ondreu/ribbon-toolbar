@@ -38,6 +38,10 @@ const DETECT_LABEL: Array<[keyof Detected, string]> = [
 	["bases", "Bases"],
 	["templates", "Templates"],
 	["templater", "Templater"],
+	["thesaurus", "Synonym (thesaurus)"],
+	["languagetool", "LanguageTool"],
+	["advancedTables", "Advanced Tables"],
+	["kanban", "Kanban"],
 ];
 
 export class RibbonSettingTab extends PluginSettingTab {

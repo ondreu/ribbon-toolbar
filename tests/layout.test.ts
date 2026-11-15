@@ -15,11 +15,13 @@ import {
 	removeTab,
 	setTabHidden,
 	visibleGroups,
+	visibleItems,
 	visibleTabs,
 	type Capabilities,
 	type RibbonItem,
 	type RibbonLayout,
 } from "../src/model/layout";
+import { defaultLayout } from "../src/model/defaults";
 
 const caps = (features: string[] = [], contexts: string[] = []): Capabilities => ({
 	features: new Set(features),
@@ -147,6 +149,49 @@ describe("editing", () => {
 		addTab(layout, "Third");
 		expect(moveTab(layout, second.id, 1)).toBe(true);
 		expect(layout.tabs.map((t) => t.name)).toEqual(["Home", "Third", "Second"]);
+	});
+});
+
+describe("default integrations", () => {
+	const home = (): RibbonLayout["tabs"][number] => {
+		const tab = defaultLayout().tabs.find((candidate) => candidate.id === "home");
+		if (!tab) throw new Error("Home tab is missing");
+		return tab;
+	};
+
+	it("hides the Review group until a review plugin is present", () => {
+		const review = (): RibbonLayout["tabs"][number]["groups"][number] => {
+			const group = home().groups.find((candidate) => candidate.id === "home-review");
+			if (!group) throw new Error("Review group is missing");
+			return group;
+		};
+		expect(visibleItems(review(), caps())).toEqual([]);
+		expect(visibleGroups(home(), caps()).some((group) => group.id === "home-review")).toBe(false);
+		expect(visibleItems(review(), caps(["thesaurus"])).map((entry) => entry.label)).toEqual(["Thesaurus"]);
+		expect(visibleItems(review(), caps(["languagetool"])).map((entry) => entry.label)).toEqual([
+			"Check text",
+			"Clear marks",
+		]);
+		expect(visibleGroups(home(), caps(["thesaurus"])).some((group) => group.id === "home-review")).toBe(true);
+	});
+
+	it("hides the Advanced Tables and Kanban buttons without their plugins", () => {
+		const table = defaultLayout().tabs.find((tab) => tab.id === "table");
+		const tableGroup = table?.groups.find((group) => group.id === "table-insert");
+		expect(tableGroup ? visibleItems(tableGroup, caps()).map((entry) => entry.label) : []).toEqual([
+			"Insert table",
+			"Quick table",
+		]);
+		expect(
+			tableGroup ? visibleItems(tableGroup, caps(["advanced-tables"])).map((entry) => entry.label) : [],
+		).toContain("Format table");
+
+		const insert = defaultLayout().tabs.find((tab) => tab.id === "insert");
+		const pages = insert?.groups.find((group) => group.id === "insert-pages");
+		expect(pages ? visibleItems(pages, caps()).some((entry) => entry.label === "New board") : false).toBe(false);
+		expect(pages ? visibleItems(pages, caps(["kanban"])).some((entry) => entry.label === "New board") : false).toBe(
+			true,
+		);
 	});
 });
 

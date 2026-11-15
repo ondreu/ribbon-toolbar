@@ -39,6 +39,13 @@ AI integrations.
 | **Excalidraw** | New drawing, embed a drawing, open one, toggle drawing/text. |
 | **Canvas** | New canvas, jump to a group, convert to a note, export as an image. |
 | **Bases** | New base, insert a base, add a view or an item. |
+| **Synonym** | Thesaurus: synonym lookup for the selected word, using that plugin's local or online sources. |
+| **LanguageTool** | Check text (whole note or selection) and clear its suggestion underlines. |
+| **Advanced Tables** | Format the table at the cursor. |
+| **Kanban** | New board, next to New canvas and New base. |
+
+Every integration is detected from its command. If the plugin is missing or turned off, its
+buttons — and a group left with no buttons — are hidden rather than shown greyed out.
 
 The Markdown Spreadsheets integration is a duck-typed, versioned contract (`ribbonHostApi`), so
 either plugin can be installed without the other. If Ribbon toolbar is disabled, the spreadsheet

@@ -37,3 +37,31 @@ describe("Templater detection", () => {
 		expect(features.has("templater")).toBe(false);
 	});
 });
+
+describe("Review and table integrations", () => {
+	it("enables each action only when its plugin command exists", () => {
+		const app = appWithCommands([
+			"synonym:show",
+			"obsidian-languagetool-plugin:ltcheck-text",
+			"table-editor-obsidian:format-table",
+			"obsidian-kanban:create-new-kanban-board",
+		]);
+		const detected = detect(app);
+		expect(detected.thesaurus).toBe(true);
+		expect(detected.languagetool).toBe(true);
+		expect(detected.advancedTables).toBe(true);
+		expect(detected.kanban).toBe(true);
+		const features = featureSet(app, settings);
+		for (const key of ["thesaurus", "languagetool", "advanced-tables", "kanban"] as const) {
+			expect(features.has(key)).toBe(true);
+		}
+	});
+
+	it("hides every action when the plugins are absent", () => {
+		const app = appWithCommands([]);
+		const features = featureSet(app, settings);
+		for (const key of ["thesaurus", "languagetool", "advanced-tables", "kanban"] as const) {
+			expect(features.has(key)).toBe(false);
+		}
+	});
+});

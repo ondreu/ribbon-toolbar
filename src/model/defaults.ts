@@ -18,6 +18,10 @@ const M = "markdown-spreadsheets:";
 const T = "obsidian-tasks-plugin:";
 const X = "obsidian-excalidraw-plugin:";
 const TE = "templater-obsidian:";
+const SY = "synonym:";
+const LT = "obsidian-languagetool-plugin:";
+const AT = "table-editor-obsidian:";
+const K = "obsidian-kanban:";
 
 type Extra = { requires?: FeatureKey; when?: "spreadsheet" };
 
@@ -110,6 +114,11 @@ const TABS: RibbonTab[] = [
 			],
 			"last",
 		),
+		G("home-review", "Review", [
+			L(SY + "show", "Thesaurus", "book-a", "purple", { requires: "thesaurus" }),
+			L(LT + "ltcheck-text", "Check text", "spell-check", undefined, { requires: "languagetool" }),
+			S(LT + "ltclear", "Clear marks", "eraser", "pink", { requires: "languagetool" }),
+		]),
 		G(
 			"home-editing",
 			"Editing",
@@ -151,6 +160,7 @@ const TABS: RibbonTab[] = [
 			L("canvas:new-file", "New canvas", "layout-dashboard"),
 			S("bases:insert", "Insert base", "between-horizontal-start", undefined, { requires: "bases" }),
 			S("bases:new-file", "New base", "layout-list", undefined, { requires: "bases" }),
+			S(K + "create-new-kanban-board", "New board", "square-kanban", undefined, { requires: "kanban" }),
 			S("file-explorer:new-file", "New note", "file-plus"),
 		]),
 		G("insert-symbols", "Symbols", [L(O + "insert-symbol", "Symbol", "omega")], "last"),
@@ -160,6 +170,7 @@ const TABS: RibbonTab[] = [
 		G("table-insert", "Table", [
 			L(O + "insert-table", "Insert table", "table"),
 			S("editor:insert-table", "Quick table", "table-2"),
+			S(AT + "format-table", "Format table", "align-justify", undefined, { requires: "advanced-tables" }),
 		]),
 		G("table-rows", "Rows", [
 			S("editor:table-row-before", "Add above", "arrow-up-to-line", "green"),
