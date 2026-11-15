@@ -144,6 +144,11 @@ describe("HTML formatting", () => {
 		expect(applyColor(start, at, at + 5, null).text).toBe("hello");
 	});
 
+	it("removes colour from two adjacent spans without corrupting the boundary", () => {
+		const text = '<span style="color: #C00000">a</span><span style="color: #0070C0">b</span>';
+		expect(applyColor(text, 0, text.length, null).text).toBe("ab");
+	});
+
 	it("wraps a highlight in a mark", () => {
 		expect(applyHighlight("hi", 0, 2, "#FFF2A8").text).toBe('<mark style="background-color: #FFF2A8">hi</mark>');
 	});

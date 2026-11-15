@@ -734,10 +734,12 @@ export class RibbonView {
 	/* ---------- clicks ---------- */
 
 	/** The event's target as an element, checked the cross-window safe way Obsidian asks for. */
-	private elementOf(event: Event): HTMLElement | null {
+	private elementOf(event: Event): Element | null {
 		const target = event.target as Node | null;
 		if (!target || typeof target.instanceOf !== "function") return null;
-		return target.instanceOf(HTMLElement) ? target : null;
+		// Icons are SVG, not HTMLElement; returning only HTMLElement made clicks on the
+		// glyph itself do nothing while clicks on the label worked.
+		return target.instanceOf(Element) ? target : null;
 	}
 
 	private onClick = (event: MouseEvent): void => {
@@ -1239,7 +1241,7 @@ export class RibbonView {
 		if (!target) return;
 		let press: Press | null = null;
 		const itemEl = target.closest<HTMLElement>("[data-item]");
-		if (itemEl?.dataset.item && this.strip.contains(itemEl)) {
+		if (itemEl?.dataset.item && this.strip.contains(itemEl) && this.editing) {
 			press = { kind: "item", id: itemEl.dataset.item, el: itemEl, x: event.clientX, y: event.clientY };
 		} else if (this.editing) {
 			// In customise mode tabs and groups (by their label) can be dragged too.

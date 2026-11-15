@@ -26,6 +26,7 @@ import { defaultLayout } from "./model/defaults";
 import {
 	cloneLayout,
 	exportLayout,
+	featureAvailable,
 	importLayout,
 	normalizeLayout,
 	type Capabilities,
@@ -86,6 +87,8 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 		// stays put — but after a full reload the mount point can be a new element.
 		this.registerEvent(this.app.workspace.on("layout-change", () => this.ensureMounted()));
 		this.registerEvent(this.app.workspace.on("active-leaf-change", (leaf) => this.onLeafChange(leaf)));
+		// A theme or font change does not resize the window, so the fit has to be told.
+		this.registerEvent(this.app.workspace.on("css-change", () => this.view.remeasure()));
 		this.app.workspace.onLayoutReady(() => {
 			this.ensureMounted();
 			this.syncContextTab();
@@ -98,7 +101,12 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 	}
 
 	onunload(): void {
-		window.clearTimeout(this.saveTimer);
+		if (this.saveTimer) {
+			window.clearTimeout(this.saveTimer);
+			this.saveTimer = 0;
+			// A debounced edit must not disappear when the plugin is reloaded within 250 ms.
+			void this.saveData({ settings: this.settings, layout: this.layout, state: this.state });
+		}
 		this.removeRibbon();
 		// With the host gone, Markdown Spreadsheets must put its own toolbar back.
 		refreshSpreadsheetHost(this.app);
@@ -130,6 +138,7 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 	private scheduleSave(): void {
 		window.clearTimeout(this.saveTimer);
 		this.saveTimer = window.setTimeout(() => {
+			this.saveTimer = 0;
 			void this.saveData({ settings: this.settings, layout: this.layout, state: this.state });
 		}, 250);
 	}
@@ -315,8 +324,15 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 	private async importLayoutFromFile(file: File): Promise<void> {
 		try {
 			const text = await file.text();
+			const next = importLayout(text);
+			const caps = this.caps();
+			// A contextual tab (only the Spreadsheet tab, say) is fine even when it is not
+			// visible right now; a layout whose every tab is gated by a missing feature is not.
+			if (!next.tabs.some((tab) => !tab.hidden && featureAvailable(tab.requires, caps))) {
+				throw new Error("This layout has no tab that can be shown with the plugins you have.");
+			}
 			this.lastLayout = cloneLayout(this.layout);
-			this.layout = importLayout(text);
+			this.layout = next;
 			this.saveLayout();
 			this.view.render();
 			new Notice("Ribbon layout imported. Use “undo the last import or reset” to go back.");
@@ -390,14 +406,7 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 		this.addCommand({
 			id: "copy",
 			name: "Copy",
-			editorCallback: (editor) => {
-				const selection = editor.getSelection() || editor.getLine(editor.getCursor().line);
-				if (!selection) {
-					new Notice("Select something to copy.");
-					return;
-				}
-				void navigator.clipboard.writeText(selection);
-			},
+			editorCallback: (editor) => void this.copySelection(editor),
 		});
 		this.addCommand({
 			id: "cut",
@@ -502,8 +511,27 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 		}
 	}
 
+	private async copySelection(editor: Editor): Promise<void> {
+		const selection = editor.getSelection() || editor.getLine(editor.getCursor().line);
+		if (!selection) {
+			new Notice("Select something to copy.");
+			return;
+		}
+		try {
+			await navigator.clipboard.writeText(selection);
+		} catch {
+			new Notice("The clipboard could not be written.");
+		}
+	}
+
 	private activeEditor(): Editor | null {
-		return this.app.workspace.getActiveViewOfType(MarkdownView)?.editor ?? this.lastMarkdown?.editor ?? null;
+		const active = this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
+		if (active) return active;
+		const last = this.lastMarkdown;
+		if (!last) return null;
+		// A closed note still leaves its view object behind; only use it while its leaf is open.
+		const attached = this.app.workspace.getLeavesOfType("markdown").some((leaf) => leaf.view === last);
+		return attached ? last.editor : null;
 	}
 
 	/**
@@ -538,26 +566,41 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 		editor.setSelection(editor.offsetToPos(edit.from), editor.offsetToPos(edit.to));
 	}
 
-	private async insertTable(editor: Editor): Promise<void> {
+	private async insertTable(_editor: Editor): Promise<void> {
 		const markdown = await insertTableDialog(this.app);
 		if (!markdown) return;
-		this.editText(editor, (text, from) => insertBlock(text, from, markdown));
+		const target = this.activeEditor();
+		if (!target) {
+			new Notice("Open a note first.");
+			return;
+		}
+		this.editText(target, (text, from) => insertBlock(text, from, markdown));
 	}
 
-	private async insertSymbol(editor: Editor): Promise<void> {
+	private async insertSymbol(_editor: Editor): Promise<void> {
 		const symbol = await insertSymbolDialog(this.app);
 		if (!symbol) return;
-		editor.replaceSelection(symbol);
+		const target = this.activeEditor();
+		if (!target) {
+			new Notice("Open a note first.");
+			return;
+		}
+		target.replaceSelection(symbol);
 	}
 
-	private async pickColour(editor: Editor, kind: "color" | "highlight"): Promise<void> {
+	private async pickColour(_editor: Editor, kind: "color" | "highlight"): Promise<void> {
 		const colour = await pickColor(
 			this.app,
 			kind === "color" ? "Font colour" : "Highlight colour",
 			kind === "color" ? TEXT_COLORS : HIGHLIGHT_COLORS,
 		);
 		if (colour === undefined) return;
-		if (kind === "color") this.editText(editor, (text, from, to) => applyColor(text, from, to, colour));
-		else this.editText(editor, (text, from, to) => applyHighlight(text, from, to, colour));
+		const target = this.activeEditor();
+		if (!target) {
+			new Notice("Open a note first.");
+			return;
+		}
+		if (kind === "color") this.editText(target, (text, from, to) => applyColor(text, from, to, colour));
+		else this.editText(target, (text, from, to) => applyHighlight(text, from, to, colour));
 	}
 }

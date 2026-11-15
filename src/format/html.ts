@@ -57,7 +57,7 @@ export function applyStyledTag(
 	const sel = from <= to ? { from, to } : { from: to, to: from };
 	const open = value === null ? "" : `<${tag} style="${property}: ${escapeAttr(value)}">`;
 	const close = value === null ? "" : `</${tag}>`;
-	const exact = new RegExp(`^<${tag}\\s+style="[^"]*">([\\s\\S]*)</${tag}>$`);
+	const exact = new RegExp(`^<${tag}\\s+style="[^"]*">((?:(?!<${tag}\\b|</${tag}>)[\\s\\S])*)</${tag}>$`);
 
 	if (sel.from === sel.to) {
 		return {
@@ -89,7 +89,23 @@ export function applyStyledTag(
 			to: openStart + replacement.length,
 		};
 	}
-	if (value === null) return { text, from: sel.from, to: sel.to };
+	if (value === null) {
+		// Several coloured spans in one selection: remove each wrapper, but never cut through
+		// a nested span (the old greedy capture wrote back a stray </span> in that case).
+		const nested = new RegExp(`<${tag}\\b`, "i");
+		const stripped = selected.replace(
+			new RegExp(`<${tag}\\s+style="[^"]*">([\\s\\S]*?)</${tag}>`, "gi"),
+			(whole: string, inner: string) => (nested.test(inner) ? whole : inner),
+		);
+		if (stripped !== selected) {
+			return {
+				text: text.slice(0, sel.from) + stripped + text.slice(sel.to),
+				from: sel.from,
+				to: sel.from + stripped.length,
+			};
+		}
+		return { text, from: sel.from, to: sel.to };
+	}
 	return {
 		text: text.slice(0, sel.from) + open + selected + close + text.slice(sel.to),
 		from: sel.from + open.length,
