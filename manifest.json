@@ -1,7 +1,7 @@
 {
   "id": "ribbon-toolbar",
   "name": "Ribbon toolbar",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "minAppVersion": "1.8.7",
   "description": "An Office-style ribbon for Obsidian: customisable tabs, groups and buttons in two heights, with integrations for Tasks, Markdown Spreadsheets, Templates, Excalidraw and Bases.",
   "author": "Ondrej Uhnavy",

@@ -145,6 +145,7 @@ export class RibbonView {
 		root.addEventListener("contextmenu", this.onContextMenu);
 		root.addEventListener("pointerdown", this.onPointerDown);
 		root.addEventListener("dblclick", this.onDoubleClick);
+		root.addEventListener("keydown", this.onKeyDown);
 		// ResizeObserver covers the ribbon itself; the window listener covers a viewport
 		// change where the app container is resized in the same frame and no second RO tick comes.
 		root.ownerDocument.defaultView?.addEventListener("resize", this.onWindowResize);
@@ -204,6 +205,7 @@ export class RibbonView {
 			this.root.removeEventListener("contextmenu", this.onContextMenu);
 			this.root.removeEventListener("pointerdown", this.onPointerDown);
 			this.root.removeEventListener("dblclick", this.onDoubleClick);
+			this.root.removeEventListener("keydown", this.onKeyDown);
 			this.root.ownerDocument.defaultView?.removeEventListener("resize", this.onWindowResize);
 		}
 		this.root = this.tabsEl = this.bodyEl = this.toggleEl = this.strip = null;
@@ -229,6 +231,7 @@ export class RibbonView {
 		const el = this.toggleEl;
 		if (!el) return;
 		el.empty();
+		el.setAttr("aria-expanded", String(!this.host.state.ribbonCollapsed));
 		if (this.editing) {
 			el.addClass("rtb-done");
 			setIcon(el.createSpan("rtb-toggle-icon"), "check");
@@ -325,11 +328,20 @@ export class RibbonView {
 			el.createDiv({
 				cls: `rtb-tab${current && tab.id === current.id ? " is-active" : ""}`,
 				text: tab.name,
-				attr: { "data-tab": tab.id, role: "tab", "aria-selected": String(!!current && tab.id === current.id) },
+				attr: {
+					"data-tab": tab.id,
+					role: "tab",
+					"aria-selected": String(!!current && tab.id === current.id),
+					"aria-controls": "rtb-ribbon-panel",
+					tabindex: "0",
+				},
 			});
 		}
 		if (this.editing) {
-			const add = el.createDiv({ cls: "rtb-tab rtb-tab-add", attr: { "aria-label": "New tab", "data-tooltip-position": "bottom" } });
+			const add = el.createDiv({
+				cls: "rtb-tab rtb-tab-add",
+				attr: { role: "button", tabindex: "0", "aria-label": "New tab", "data-tooltip-position": "bottom" },
+			});
 			setIcon(add, "plus");
 		}
 		this.fitTabRow();
@@ -355,9 +367,14 @@ export class RibbonView {
 		}
 		const more = el.createDiv({
 			cls: "rtb-tab rtb-tab-more",
-			attr: { "aria-label": "More tabs", "data-tooltip-position": "bottom" },
+			attr: { role: "button", tabindex: "0", "aria-label": "More tabs", "data-tooltip-position": "bottom" },
 		});
 		setIcon(more, "chevrons-right");
+		more.addEventListener("keydown", (event) => {
+			if (event.key !== "Enter" && event.key !== " ") return;
+			event.preventDefault();
+			more.click();
+		});
 		more.addEventListener("click", (event) => {
 			event.stopPropagation();
 			const menu = new Menu();
@@ -373,7 +390,7 @@ export class RibbonView {
 		});
 	}
 
-	private selectTab(id: string): void {
+	private selectTab(id: string, focus = false): void {
 		const state = this.host.state;
 		const current = this.currentTab();
 		// A click on a tab while the ribbon is collapsed expands it — the Office behaviour.
@@ -382,12 +399,19 @@ export class RibbonView {
 			state.ribbonTab = id;
 			this.host.saveState();
 			this.render();
+			if (focus) this.focusActiveTab();
 			return;
 		}
 		if (current && current.id === id && state.ribbonTab === id) return;
 		state.ribbonTab = id;
 		this.host.saveState();
 		this.render();
+		if (focus) this.focusActiveTab();
+	}
+
+	/** Keyboard navigation keeps the focus on the tab strip; a re-render replaces the nodes. */
+	private focusActiveTab(): void {
+		this.tabsEl?.querySelector<HTMLElement>(".rtb-tab.is-active")?.focus();
 	}
 
 	/* ---------- ribbon body ---------- */
@@ -773,6 +797,49 @@ export class RibbonView {
 	private onDoubleClick = (event: MouseEvent): void => {
 		const target = this.elementOf(event);
 		if (target?.closest(".rtb-tab[data-tab]")) this.host.toggleRibbon();
+	};
+
+	/** Arrow keys move between ribbon tabs, Enter and Space open the focused one. */
+	private onKeyDown = (event: KeyboardEvent): void => {
+		const active = this.elementOf(event);
+		const addEl = active?.closest(".rtb-tab-add");
+		if (addEl) {
+			if (event.key === "Enter" || event.key === " ") {
+				event.preventDefault();
+				void this.promptAddTab();
+			}
+			return;
+		}
+		const tabEl = active?.closest<HTMLElement>(".rtb-tab[data-tab]");
+		if (!tabEl || !this.tabsEl) return;
+		const tabs = Array.from(this.tabsEl.querySelectorAll<HTMLElement>(".rtb-tab[data-tab]"));
+		const index = tabs.indexOf(tabEl);
+		if (index < 0) return;
+		const focusAt = (next: number): void => tabs[(next + tabs.length) % tabs.length]?.focus();
+		switch (event.key) {
+			case "Enter":
+			case " ":
+				event.preventDefault();
+				if (tabEl.dataset.tab) this.selectTab(tabEl.dataset.tab, true);
+				break;
+			case "ArrowRight":
+				event.preventDefault();
+				focusAt(index + 1);
+				break;
+			case "ArrowLeft":
+				event.preventDefault();
+				focusAt(index - 1);
+				break;
+			case "Home":
+				event.preventDefault();
+				focusAt(0);
+				break;
+			case "End":
+				event.preventDefault();
+				focusAt(tabs.length - 1);
+				break;
+			default:
+		}
 	};
 
 	private runItem(itemId: string, el: HTMLElement): void {

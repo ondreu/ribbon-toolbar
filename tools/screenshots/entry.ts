@@ -92,7 +92,7 @@ const toggle = (end.createEl as (tag: string, o?: unknown) => HTMLElement)("butt
 	cls: "rtb-toggle",
 	attr: { type: "button", "data-tooltip-position": "bottom" },
 });
-const body = (root.createDiv as (o?: unknown) => HTMLElement)("rtb-ribbon");
+const body = root.createDiv({ cls: "rtb-ribbon", attr: { id: "rtb-ribbon-panel", role: "tabpanel" } });
 
 const view = new RibbonView(host);
 view.mount(root, tabsEl, body, toggle);

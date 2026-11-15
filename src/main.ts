@@ -168,7 +168,7 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 			cls: "rtb-toggle",
 			attr: { type: "button", "data-tooltip-position": "bottom" },
 		});
-		const body = root.createDiv("rtb-ribbon");
+		const body = root.createDiv({ cls: "rtb-ribbon", attr: { id: "rtb-ribbon-panel", role: "tabpanel" } });
 
 		// A click on the ribbon must not take the selection or focus away from the editor.
 		root.addEventListener("mousedown", (event) => {
@@ -307,20 +307,22 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 		const input = createEl("input", { type: "file", attr: { accept: ".json,application/json" } });
 		input.addEventListener("change", () => {
 			const file = input.files?.[0];
-			if (!file) return;
-			void file.text().then((text) => {
-				try {
-					this.lastLayout = cloneLayout(this.layout);
-					this.layout = importLayout(text);
-					this.saveLayout();
-					this.view.render();
-					new Notice("Ribbon layout imported. Use “undo the last import or reset” to go back.");
-				} catch (error) {
-					new Notice(error instanceof Error ? error.message : "That file is not a ribbon layout.");
-				}
-			});
+			if (file) void this.importLayoutFromFile(file);
 		});
 		input.click();
+	}
+
+	private async importLayoutFromFile(file: File): Promise<void> {
+		try {
+			const text = await file.text();
+			this.lastLayout = cloneLayout(this.layout);
+			this.layout = importLayout(text);
+			this.saveLayout();
+			this.view.render();
+			new Notice("Ribbon layout imported. Use “undo the last import or reset” to go back.");
+		} catch (error) {
+			new Notice(error instanceof Error ? error.message : "That file is not a ribbon layout.");
+		}
 	}
 
 	async resetLayout(): Promise<void> {
@@ -383,12 +385,7 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 		this.addCommand({
 			id: "paste",
 			name: "Paste",
-			editorCallback: (editor) => {
-				void navigator.clipboard
-					.readText()
-					.then((text) => editor.replaceSelection(text))
-					.catch(() => new Notice("The clipboard could not be read."));
-			},
+			editorCallback: (editor) => void this.pasteFromClipboard(editor),
 		});
 		this.addCommand({
 			id: "copy",
@@ -405,14 +402,7 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 		this.addCommand({
 			id: "cut",
 			name: "Cut",
-			editorCallback: (editor) => {
-				const selection = editor.getSelection();
-				if (!selection) {
-					new Notice("Select something to cut.");
-					return;
-				}
-				void navigator.clipboard.writeText(selection).then(() => editor.replaceSelection(""));
-			},
+			editorCallback: (editor) => void this.cutSelection(editor),
 		});
 
 		/* Formatting that Markdown (or Obsidian's command list) does not provide. */
@@ -488,6 +478,29 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 	}
 
 	/* ---------- editor helpers ---------- */
+
+	private async pasteFromClipboard(editor: Editor): Promise<void> {
+		try {
+			const text = await navigator.clipboard.readText();
+			editor.replaceSelection(text);
+		} catch {
+			new Notice("The clipboard could not be read.");
+		}
+	}
+
+	private async cutSelection(editor: Editor): Promise<void> {
+		const selection = editor.getSelection();
+		if (!selection) {
+			new Notice("Select something to cut.");
+			return;
+		}
+		try {
+			await navigator.clipboard.writeText(selection);
+			editor.replaceSelection("");
+		} catch {
+			new Notice("The clipboard could not be written.");
+		}
+	}
 
 	private activeEditor(): Editor | null {
 		return this.app.workspace.getActiveViewOfType(MarkdownView)?.editor ?? this.lastMarkdown?.editor ?? null;

@@ -186,7 +186,6 @@ export function confirmAction(app: App, title: string, message: string, cta: str
 export class TableModal extends Modal {
 	private rows = 3;
 	private cols = 3;
-	private header = true;
 	private done = false;
 
 	constructor(
@@ -201,10 +200,9 @@ export class TableModal extends Modal {
 		this.titleEl.setText("Insert table");
 		const preview = this.contentEl.createEl("pre", { cls: "rtb-table-preview" });
 		const update = (): void => {
-			const markdown = this.header
-				? tableMarkdown(this.rows, this.cols)
-				: tableMarkdown(this.rows + 1, this.cols).split("\n").slice(1).join("\n");
-			preview.setText(markdown.split("\n").slice(0, 4).join("\n"));
+			// Markdown has no headerless table: a separator row is what makes it a table at all,
+			// so the first row is always the header.
+			preview.setText(tableMarkdown(this.rows, this.cols).split("\n").slice(0, 4).join("\n"));
 		};
 		new Setting(this.contentEl)
 			.setName("Columns")
@@ -224,33 +222,18 @@ export class TableModal extends Modal {
 					update();
 				}),
 			);
-		new Setting(this.contentEl)
-			.setName("Header row")
-			.setDesc("A Markdown table needs a header; turn this off to import a headerless table later.")
-			.addToggle((toggle) =>
-				toggle.setValue(this.header).onChange((value) => {
-					this.header = value;
-					update();
-				}),
-			);
 		update();
 		const footer = this.contentEl.createDiv("rtb-dialog-footer");
 		const cancel = footer.createEl("button", { text: "Cancel", attr: { type: "button" } });
 		cancel.addEventListener("click", () => this.finish(null));
 		const ok = footer.createEl("button", { cls: "mod-cta", text: "Insert", attr: { type: "button" } });
-		ok.addEventListener("click", () => this.finish(this.markdown()));
+		ok.addEventListener("click", () => this.finish(tableMarkdown(this.rows, this.cols)));
 		ok.focus();
 	}
 
 	onClose(): void {
 		this.contentEl.empty();
 		if (!this.done) this.resolve(null);
-	}
-
-	private markdown(): string {
-		const table = tableMarkdown(this.rows, this.cols);
-		if (this.header) return table;
-		return table.split("\n").slice(1).join("\n");
 	}
 
 	private finish(text: string | null): void {
