@@ -30,7 +30,7 @@ AI integrations.
 
 ## Screenshots
 
-**Home — formatting, styles, review and editing**
+**Home — formatting, styles and review**
 ![Home tab with the full ribbon](docs/screenshots/01-home.png)
 
 **Insert — the compact two-row ribbon: templates, links, blocks and pages**
