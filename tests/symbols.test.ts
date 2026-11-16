@@ -26,6 +26,13 @@ describe("the symbol catalogue", () => {
 		}
 	});
 
+	it("keeps every visible name in English ASCII", () => {
+		// Keywords may be localised; the name is what the tooltip and hint show, so it stays English.
+		for (const entry of SYMBOLS) {
+			expect(entry.name, `${entry.char} has a non-ASCII name`).toMatch(/^[\x20-\x7E]+$/);
+		}
+	});
+
 	it("keeps every category populated", () => {
 		for (const category of SYMBOL_CATEGORIES) {
 			expect(SYMBOLS.some((entry) => entry.category === category)).toBe(true);

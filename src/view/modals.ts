@@ -271,7 +271,7 @@ export class SymbolModal extends Modal {
 			cls: "rtb-symbol-search",
 			attr: {
 				type: "search",
-				placeholder: "Search — try “ohm”, “omega”, “šipka”…",
+				placeholder: "Search — try “ohm”, “omega”, “arrow”…",
 				"aria-label": "Search symbols",
 				spellcheck: "false",
 			},
