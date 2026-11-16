@@ -217,16 +217,43 @@ export class FuzzySuggestModal<T> {
 }
 
 export class Modal {
-	contentEl = document.createElement("div");
-	titleEl = document.createElement("div");
-	modalEl = document.createElement("div");
-	constructor(public app: unknown) {}
+	containerEl: HTMLElement;
+	modalEl: HTMLElement;
+	titleEl: HTMLElement;
+	contentEl: HTMLElement;
+	private isOpen = false;
+
+	constructor(public app: unknown) {
+		this.containerEl = document.createElement("div");
+		this.containerEl.className = "modal-container";
+		this.modalEl = document.createElement("div");
+		this.modalEl.className = "modal";
+		this.titleEl = document.createElement("div");
+		this.titleEl.className = "modal-title";
+		this.contentEl = document.createElement("div");
+		this.contentEl.className = "modal-content";
+		this.modalEl.append(this.titleEl, this.contentEl);
+		this.containerEl.appendChild(this.modalEl);
+	}
+
 	open(): void {
+		document.body.appendChild(this.containerEl);
+		this.isOpen = true;
+		document.addEventListener("keydown", this.onEscape);
 		this.onOpen();
 	}
+
 	close(): void {
+		document.removeEventListener("keydown", this.onEscape);
 		this.onClose();
+		this.containerEl.remove();
+		this.isOpen = false;
 	}
+
+	private readonly onEscape = (event: KeyboardEvent): void => {
+		if (event.key === "Escape" && this.isOpen) this.close();
+	};
+
 	onOpen(): void {}
 	onClose(): void {}
 }

@@ -21,6 +21,10 @@ AI integrations.
 - **Markdown only.** Bold, italic, strike, highlight, code, headings, lists, quotes, checkboxes,
   links, tables, callouts, math, sub- and superscript. Subscript and superscript are the one
   exception: Markdown has no syntax for them, so they use `<sub>`/`<sup>`.
+- **Find a symbol by name.** Insert symbol opens a searchable palette of more than 200 characters —
+  Greek letters, maths, units, arrows, currency, typography, marks and powers. Type what you mean
+  (`ohm`, `omega`, `odpor`, `sipka`, `mikro`) and it ranks the character; Enter inserts the first
+  hit, arrow keys walk the grid.
 - **HTML formatting is opt-in.** Underline, font colour and a coloured highlight are inline HTML.
   They are off by default, their commands stay out of the command palette, and the `HTML` tab is
   hidden until the setting is turned on.

@@ -7,7 +7,8 @@
  */
 
 import { FuzzySuggestModal, getIconIds, Modal, Setting, setIcon, type App, type Command, type FuzzyMatch } from "obsidian";
-import { SYMBOLS, tableMarkdown } from "../format/text";
+import { tableMarkdown } from "../format/text";
+import { SYMBOLS, SYMBOL_CATEGORIES, searchSymbols, type SymbolEntry } from "../format/symbols";
 import type { Pen } from "../format/html";
 import { listCommands } from "../internal";
 
@@ -248,8 +249,14 @@ export function insertTableDialog(app: App): Promise<string | null> {
 	return new Promise((resolve) => new TableModal(app, resolve).open());
 }
 
-/** A grid of characters. Clicking one closes the dialog with that character. */
+/** A searchable palette of characters. Clicking one closes the dialog with that character. */
 export class SymbolModal extends Modal {
+	private searchEl: HTMLInputElement | null = null;
+	private bodyEl: HTMLElement | null = null;
+	private hintEl: HTMLElement | null = null;
+	private results: readonly SymbolEntry[] = SYMBOLS;
+	private selected = 0;
+
 	constructor(
 		app: App,
 		private readonly resolve: (symbol: string | null) => void,
@@ -260,16 +267,134 @@ export class SymbolModal extends Modal {
 
 	onOpen(): void {
 		this.titleEl.setText("Insert symbol");
-		const grid = this.contentEl.createDiv("rtb-symbol-grid");
-		for (const symbol of SYMBOLS) {
-			const button = grid.createEl("button", { cls: "rtb-symbol", text: symbol, attr: { type: "button" } });
-			button.addEventListener("click", () => this.finish(symbol));
-		}
+		const search = this.contentEl.createEl("input", {
+			cls: "rtb-symbol-search",
+			attr: {
+				type: "search",
+				placeholder: "Search — try “ohm”, “omega”, “šipka”…",
+				"aria-label": "Search symbols",
+				spellcheck: "false",
+			},
+		});
+		this.searchEl = search;
+		search.addEventListener("input", () => {
+			this.selected = 0;
+			this.render();
+		});
+		search.addEventListener("keydown", (event) => this.onKeydown(event));
+		this.bodyEl = this.contentEl.createDiv("rtb-symbol-body");
+		this.hintEl = this.contentEl.createDiv("rtb-symbol-hint");
+		this.render();
+		window.setTimeout(() => this.searchEl?.focus(), 0);
 	}
 
 	onClose(): void {
 		this.contentEl.empty();
 		this.resolve(null);
+	}
+
+	private render(): void {
+		const body = this.bodyEl;
+		if (!body) return;
+		body.empty();
+		const query = this.searchEl?.value.trim() ?? "";
+		this.results = searchSymbols(query);
+		if (this.results.length === 0) {
+			body.createDiv({ cls: "rtb-symbol-empty", text: `No symbol matches “${query}”.` });
+			this.showHint(undefined);
+			return;
+		}
+		if (query === "") {
+			for (const category of SYMBOL_CATEGORIES) {
+				const entries = this.results.filter((entry) => entry.category === category);
+				if (entries.length === 0) continue;
+				body.createDiv({ cls: "rtb-symbol-group-title", text: category });
+				this.renderGrid(entries);
+			}
+		} else {
+			this.renderGrid(this.results);
+		}
+		this.selected = Math.min(this.selected, this.results.length - 1);
+		this.applySelection();
+	}
+
+	private renderGrid(entries: readonly SymbolEntry[]): void {
+		const grid = this.bodyEl?.createDiv("rtb-symbol-grid");
+		if (!grid) return;
+		for (const entry of entries) {
+			const button = grid.createEl("button", {
+				cls: "rtb-symbol",
+				text: entry.char,
+				attr: {
+					type: "button",
+					title: `${entry.name} — ${entry.category}`,
+					"aria-label": `${entry.name}, ${entry.category}`,
+				},
+			});
+			button.addEventListener("click", () => this.finish(entry.char));
+			button.addEventListener("mouseenter", () => this.showHint(entry));
+			button.addEventListener("mouseleave", () => this.showHint(this.results[this.selected]));
+		}
+	}
+
+	private buttons(): HTMLElement[] {
+		return Array.from(this.bodyEl?.querySelectorAll<HTMLElement>(".rtb-symbol") ?? []);
+	}
+
+	private applySelection(): void {
+		const buttons = this.buttons();
+		buttons.forEach((button, index) => button.toggleClass("is-selected", index === this.selected));
+		const current = buttons[this.selected];
+		if (current) current.scrollIntoView({ block: "nearest" });
+		this.showHint(this.results[this.selected]);
+	}
+
+	private showHint(entry: SymbolEntry | undefined): void {
+		this.hintEl?.setText(entry ? `${entry.char}  ${entry.name} · ${entry.category}` : "");
+	}
+
+	private move(step: number): void {
+		if (this.results.length === 0) return;
+		const next = Math.min(Math.max(this.selected + step, 0), this.results.length - 1);
+		if (next === this.selected) return;
+		this.selected = next;
+		this.applySelection();
+	}
+
+	private moveRow(step: 1 | -1): void {
+		const grid = this.buttons()[this.selected]?.parentElement ?? null;
+		const columns = grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").filter((part) => part !== "").length : 1;
+		this.move(step * Math.max(columns, 1));
+	}
+
+	private onKeydown(event: KeyboardEvent): void {
+		switch (event.key) {
+			case "Enter": {
+				const entry = this.results[this.selected];
+				if (!entry) return;
+				event.preventDefault();
+				this.finish(entry.char);
+				return;
+			}
+			case "ArrowRight":
+				event.preventDefault();
+				this.move(1);
+				return;
+			case "ArrowLeft":
+				event.preventDefault();
+				this.move(-1);
+				return;
+			case "ArrowDown":
+				event.preventDefault();
+				this.moveRow(1);
+				return;
+			case "ArrowUp":
+				event.preventDefault();
+				this.moveRow(-1);
+				return;
+			default:
+				return;
+		}
 	}
 
 	private finish(symbol: string): void {

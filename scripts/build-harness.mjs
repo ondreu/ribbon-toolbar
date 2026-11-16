@@ -15,17 +15,24 @@ const icons = {};
 for (const file of files) icons[file.slice(0, -4)] = readFileSync(`${iconDir}/${file}`, "utf8");
 writeFileSync("tools/screenshots/icons.js", `window.LUCIDE=${JSON.stringify(icons)};`);
 
-execFileSync(
-	"./node_modules/.bin/esbuild",
-	[
-		"tools/screenshots/entry.ts",
-		"--bundle",
-		"--format=iife",
-		`--alias:obsidian=${process.cwd()}/tools/screenshots/obsidian-shim.ts`,
-		"--outfile=tools/screenshots/bundle.js",
-		"--log-level=warning",
-	],
-	{ stdio: "inherit" },
-);
+const builds = [
+	["tools/screenshots/entry.ts", "tools/screenshots/bundle.js"],
+	["tools/screenshots/dialog-entry.ts", "tools/screenshots/dialog.js"],
+];
+
+for (const [entry, outfile] of builds) {
+	execFileSync(
+		"./node_modules/.bin/esbuild",
+		[
+			entry,
+			"--bundle",
+			"--format=iife",
+			`--alias:obsidian=${process.cwd()}/tools/screenshots/obsidian-shim.ts`,
+			`--outfile=${outfile}`,
+			"--log-level=warning",
+		],
+		{ stdio: "inherit" },
+	);
+}
 
 process.stdout.write(`Harness ready: tools/screenshots/page.html (${files.length} icons)\n`);

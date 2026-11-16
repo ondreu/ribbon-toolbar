@@ -210,9 +210,3 @@ export function tableMarkdown(rows: number, cols: number): string {
 	return [header, separator, ...body].join("\n");
 }
 
-/** Common symbols worth a click. Unicode text, not HTML: it survives any Markdown renderer. */
-export const SYMBOLS = [
-	"©", "®", "™", "°", "±", "×", "÷", "≈", "≠", "≤", "≥", "∞", "√", "π", "µ", "Ω",
-	"€", "£", "¥", "¢", "§", "¶", "•", "…", "→", "←", "↑", "↓", "↔", "⇒", "✓", "✗",
-	"★", "☆", "♥", "☺", "½", "¼", "¾", "²", "³", "«", "»", "—", "–", "¿", "¡", "†",
-] as const;

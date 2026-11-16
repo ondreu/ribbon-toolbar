@@ -887,16 +887,41 @@ body.is-hidden-frameless.mod-macos:not(.is-fullscreen) .rtb-tabrow {
 	overflow: hidden;
 }
 
+.rtb-symbol-search {
+	width: 100%;
+}
+
+.rtb-symbol-body {
+	max-height: min(52vh, 460px);
+	margin-top: 8px;
+	overflow-y: auto;
+	padding-right: 4px;
+}
+
+.rtb-symbol-group-title {
+	margin: 10px 0 2px;
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	font-weight: var(--font-semibold);
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.rtb-symbol-group-title:first-child {
+	margin-top: 0;
+}
+
 .rtb-symbol-grid {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
 	gap: 4px;
-	margin-top: 8px;
+	margin-top: 4px;
 }
 
 .rtb-symbol {
 	height: 36px;
 	font-size: 17px;
+	color: var(--text-normal);
 	border: 1px solid var(--background-modifier-border);
 	border-radius: 4px;
 	background: var(--background-secondary);
@@ -905,6 +930,24 @@ body.is-hidden-frameless.mod-macos:not(.is-fullscreen) .rtb-tabrow {
 
 .rtb-symbol:hover {
 	background: var(--background-modifier-hover);
+}
+
+.rtb-symbol.is-selected {
+	border-color: var(--interactive-accent);
+	background: var(--background-modifier-hover);
+}
+
+.rtb-symbol-empty {
+	margin-top: 12px;
+	color: var(--text-muted);
+	text-align: center;
+}
+
+.rtb-symbol-hint {
+	min-height: 1.5em;
+	margin-top: 8px;
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
 }
 
 .rtb-color-grid {
