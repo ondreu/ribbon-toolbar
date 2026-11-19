@@ -6,7 +6,7 @@
  * Official Obsidian API only. The dialogs return promises so the caller reads like a script.
  */
 
-import { FuzzySuggestModal, getIconIds, Modal, Setting, setIcon, type App, type Command, type FuzzyMatch } from "obsidian";
+import { FuzzySuggestModal, getIconIds, Modal, Setting, setIcon, type App, type Command, type FuzzyMatch, type TFile } from "obsidian";
 import { tableMarkdown } from "../format/text";
 import { SYMBOLS, SYMBOL_CATEGORIES, searchSymbols, type SymbolEntry } from "../format/symbols";
 import type { Pen } from "../format/html";
@@ -48,6 +48,52 @@ export class CommandPickerModal extends FuzzySuggestModal<Command> {
 	onChooseItem(command: Command): void {
 		this.onChoose(command);
 	}
+}
+
+/**
+ * Embed an existing canvas. The core embed command opens a picker over every file; this one
+ * lists canvases only, which is the case that is fiddly to do by hand.
+ */
+export class CanvasPickerModal extends FuzzySuggestModal<TFile> {
+	private done = false;
+
+	constructor(
+		app: App,
+		private readonly resolve: (file: TFile | null) => void,
+	) {
+		super(app);
+		this.modalEl.addClass("rtb-picker");
+		this.setPlaceholder("Embed a canvas: type to search…");
+		this.setInstructions([
+			{ command: "↑↓", purpose: "to move" },
+			{ command: "↵", purpose: "to embed" },
+			{ command: "esc", purpose: "to cancel" },
+		]);
+	}
+
+	getItems(): TFile[] {
+		return this.app.vault
+			.getFiles()
+			.filter((file) => file.extension === "canvas")
+			.sort((a, b) => a.path.localeCompare(b.path));
+	}
+
+	getItemText(file: TFile): string {
+		return file.path;
+	}
+
+	onChooseItem(file: TFile): void {
+		this.done = true;
+		this.resolve(file);
+	}
+
+	onClose(): void {
+		if (!this.done) this.resolve(null);
+	}
+}
+
+export function pickCanvas(app: App): Promise<TFile | null> {
+	return new Promise((resolve) => new CanvasPickerModal(app, resolve).open());
 }
 
 export class IconPickerModal extends FuzzySuggestModal<string> {

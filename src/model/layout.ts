@@ -79,6 +79,12 @@ export interface RibbonTab {
 
 export interface RibbonLayout {
 	version: number;
+	/**
+	 * Which generation of the built-in layout this came from. A stored layout that still matches
+	 * the previous default is upgraded in place when the defaults change; a customised one is
+	 * not touched. Absent on layouts written before this field existed.
+	 */
+	defaultsVersion?: number;
 	tabs: RibbonTab[];
 }
 
@@ -128,7 +134,8 @@ export function normalizeLayout(raw: unknown): RibbonLayout {
 	if (!raw || typeof raw !== "object" || !Array.isArray((raw as { tabs?: unknown }).tabs)) {
 		throw new Error("This is not a ribbon layout (no list of tabs found).");
 	}
-	const source = raw as { tabs: unknown[] };
+	const source = raw as { tabs: unknown[]; defaultsVersion?: unknown };
+	const defaultsVersion = typeof source.defaultsVersion === "number" && source.defaultsVersion > 0 ? Math.floor(source.defaultsVersion) : undefined;
 	const seen = new Set<string>();
 	const id = (wanted: unknown, prefix: string): string => {
 		let v = str(wanted, "") || uid(prefix);
@@ -183,7 +190,29 @@ export function normalizeLayout(raw: unknown): RibbonLayout {
 		}
 		tabs.push(tab);
 	}
-	return { version: LAYOUT_VERSION, tabs };
+	return { version: LAYOUT_VERSION, ...(defaultsVersion ? { defaultsVersion } : {}), tabs };
+}
+
+/**
+ * A stable fingerprint of the layout's shape: tab ids, group ids and the commands in order.
+ * Generated item ids and user-chosen labels are ignored, so two vaults that never touched the
+ * default produce the same signature.
+ */
+export function layoutSignature(layout: RibbonLayout): string {
+	return layout.tabs
+		.map((tab) => `${tab.id}:${tab.groups.map((group) => `${group.id}=${group.items.map((item) => item.command).join(",")}`).join(";")}`)
+		.join("|");
+}
+
+/** FNV-1a over the signature: short, deterministic, and only used to spot an untouched default. */
+export function layoutHash(layout: RibbonLayout): string {
+	const text = layoutSignature(layout);
+	let hash = 0x811c9dc5;
+	for (let index = 0; index < text.length; index += 1) {
+		hash ^= text.charCodeAt(index);
+		hash = Math.imul(hash, 0x01000193);
+	}
+	return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
 export function cloneLayout(layout: RibbonLayout): RibbonLayout {

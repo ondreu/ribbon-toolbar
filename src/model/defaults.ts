@@ -6,9 +6,17 @@
  * hidden. A tab or group that only makes sense with an optional plugin carries `requires`, so it
  * is hidden rather than shown full of dead buttons.
  *
+ * Two rules keep the bar readable, and tests/defaults.test.ts enforces both:
+ *
+ *   1. No command appears twice. Creating something lives in Insert > Pages; a tab with a
+ *      `requires` survives only where the action belongs to that plugin.
+ *   2. Every core command id exists in Obsidian 1.15.1 (tests/fixtures/obsidian-commands.json).
+ *      Community ids are checked against the plugin that registers them.
+ *
  *   own:        this plugin's commands (ribbon-toolbar:*)
  *   core:       Obsidian and its core plugins
- *   community:  Tasks, Markdown Spreadsheets, Excalidraw
+ *   community:  Tasks, Markdown Spreadsheets, Excalidraw, Templater, Synonym, LanguageTool,
+ *               Advanced Tables, Kanban, Git, Advanced PDF Export
  */
 
 import { normalizeLayout, type ColorName, type FeatureKey, type RibbonGroup, type RibbonItem, type RibbonLayout, type RibbonTab } from "./layout";
@@ -77,6 +85,8 @@ const TABS: RibbonTab[] = [
 				L(O + "paste", "Paste", "clipboard-paste"),
 				S(O + "cut", "Cut", "scissors"),
 				S(O + "copy", "Copy", "copy"),
+				S("editor:undo", "Undo", "undo-2"),
+				S("editor:redo", "Redo", "redo-2"),
 				S("editor:clear-formatting", "Clear", "eraser", "pink"),
 			],
 			"last",
@@ -89,6 +99,7 @@ const TABS: RibbonTab[] = [
 			S("editor:toggle-code", "Code", "code"),
 			S(O + "subscript", "Subscript", "subscript"),
 			S(O + "superscript", "Superscript", "superscript"),
+			S("editor:toggle-comments", "Comment", "message-square-text"),
 		]),
 		G("home-paragraph", "Paragraph", [
 			S("editor:toggle-bullet-list", "Bullets", "list"),
@@ -96,6 +107,8 @@ const TABS: RibbonTab[] = [
 			S("editor:toggle-checklist-status", "Checkbox", "list-checks"),
 			S("editor:unindent-list", "Outdent", "outdent"),
 			S("editor:indent-list", "Indent", "indent"),
+			S("editor:swap-line-up", "Move up", "arrow-up"),
+			S("editor:swap-line-down", "Move down", "arrow-down"),
 			S("editor:toggle-blockquote", "Quote", "quote"),
 		]),
 		G("home-styles", "Styles", [
@@ -105,17 +118,6 @@ const TABS: RibbonTab[] = [
 			S(O + "style-h4", "Heading 4", "heading-4", "blue"),
 			S(O + "style-normal", "Normal", "pilcrow"),
 		]),
-		G(
-			"home-notes",
-			"Notes",
-			[
-				L("file-explorer:new-file", "New note", "file-plus"),
-				S("canvas:new-file", "New canvas", "layout-dashboard"),
-				S("insert-template", "Template", "layout-template"),
-				S("bases:new-file", "New base", "layout-list", undefined, { requires: "bases" }),
-			],
-			"last",
-		),
 		G("home-review", "Review", [
 			L(SY + "show", "Thesaurus", "book-a", "purple", { requires: "thesaurus" }),
 			L(LT + "ltcheck-text", "Check text", "spell-check-2", undefined, { requires: "languagetool" }),
@@ -125,12 +127,18 @@ const TABS: RibbonTab[] = [
 
 	TAB("insert", "Insert", [
 		G("insert-files", "Files", [
-			L("editor:attach-file", "Attachment", "paperclip"),
-			S("editor:insert-embed", "Embed note", "file-input"),
-			S(X + "excalidraw-autocreate-and-embed", "Embed drawing", "image-plus", undefined, { requires: "excalidraw" }),
+			L("editor:insert-embed", "Embed", "file-input"),
+			S("editor:attach-file", "Attachment", "paperclip"),
+			S(O + "embed-canvas", "Embed canvas", "layout-dashboard"),
+		]),
+		G("insert-pages", "Pages", [
+			L("file-explorer:new-file", "New note", "file-plus"),
+			S("canvas:new-file", "New canvas", "layout-dashboard"),
+			S("bases:new-file", "New base", "layout-list", undefined, { requires: "bases" }),
+			S(K + "create-new-kanban-board", "New board", "square-kanban", undefined, { requires: "kanban" }),
 		]),
 		G("insert-templates", "Templates", [
-			S("insert-template", "Template", "layout-template", undefined, { requires: "templates" }),
+			L("insert-template", "Template", "layout-template", undefined, { requires: "templates" }),
 			S(TE + "insert-templater", "Templater", "layout-template", "purple", { requires: "templater" }),
 			S(TE + "create-new-note-from-template", "New from template", "file-plus", undefined, { requires: "templater" }),
 		]),
@@ -144,16 +152,12 @@ const TABS: RibbonTab[] = [
 			L("editor:insert-callout", "Callout", "message-square", "cyan"),
 			S("editor:insert-codeblock", "Code block", "code-2"),
 			S("editor:insert-horizontal-rule", "Divider", "minus"),
-			S("editor:toggle-blockquote", "Quote", "quote"),
 			S("editor:insert-mathblock", "Equation", "sigma", "purple"),
 			S("editor:toggle-inline-math", "Inline math", "square-function"),
 		]),
-		G("insert-pages", "Pages", [
-			L("canvas:new-file", "New canvas", "layout-dashboard"),
-			S("bases:insert", "Insert base", "between-horizontal-start", undefined, { requires: "bases" }),
-			S("bases:new-file", "New base", "layout-list", undefined, { requires: "bases" }),
-			S(K + "create-new-kanban-board", "New board", "square-kanban", undefined, { requires: "kanban" }),
-			S("file-explorer:new-file", "New note", "file-plus"),
+		G("insert-date", "Date and time", [
+			L("insert-current-date", "Date", "calendar-days"),
+			S("insert-current-time", "Time", "clock"),
 		]),
 		G("insert-symbols", "Symbols", [L(O + "insert-symbol", "Symbol", "omega")], "last"),
 	]),
@@ -202,9 +206,8 @@ const TABS: RibbonTab[] = [
 		"Spreadsheet",
 		[
 			G("ss-table", "Table", [
-				L(M + "open-table-in-grid", "Open in grid", "table-properties", undefined, onGrid),
+				L(M + "grid-open-note", "Open note", "file-text", undefined, onGrid),
 				S(M + "grid-reload", "Reload", "refresh-cw", undefined, onGrid),
-				S(M + "grid-open-note", "Open note", "file-text", undefined, onGrid),
 				S(M + "grid-reformat", "Reformat", "align-justify", undefined, onGrid),
 			]),
 			G("ss-rows", "Rows", [
@@ -314,10 +317,9 @@ const TABS: RibbonTab[] = [
 			"excalidraw",
 		),
 		G("draw-canvas", "Canvas", [
-			L("canvas:new-file", "New canvas", "layout-dashboard"),
+			L("canvas:export-as-image", "Export image", "image"),
 			S("canvas:jump-to-group", "Jump to group", "move"),
 			S("canvas:convert-to-file", "Convert to note", "file-input"),
-			S("canvas:export-as-image", "Export image", "image"),
 		]),
 	]),
 
@@ -335,45 +337,9 @@ const TABS: RibbonTab[] = [
 				"normal",
 				"tasks",
 			),
-			G("tasks-checkbox", "Checkbox", [
-				L(O + "insert-task", "New task", "list-checks", "blue"),
-				S("editor:toggle-checklist-status", "Toggle", "check-square"),
-			]),
-			G("tasks-search", "Search", [
-				S("global-search:open", "Search vault", "search"),
-				S("editor:open-search", "Find in note", "text-search"),
-			], "last"),
+			G("tasks-new", "New task", [L(O + "insert-task", "New task", "list-checks", "blue")], "last"),
 		],
 		{ requires: "tasks" },
-	),
-
-	TAB(
-		"git",
-		"Git",
-		[
-			G(
-				"git-sync",
-				"Sync",
-				[
-					L(GIT + "push", "Commit and sync", "refresh-cw", "green"),
-					S(GIT + "pull", "Pull", "arrow-down-to-line"),
-					S(GIT + "push2", "Push", "arrow-up-from-line"),
-					S(GIT + "commit", "Commit all", "git-commit-horizontal"),
-				],
-				"first",
-			),
-			G(
-				"git-repository",
-				"Repository",
-				[
-					S(GIT + "open-git-view", "Source control", "git-branch"),
-					S(GIT + "open-history-view", "History", "history"),
-					S(GIT + "fetch", "Fetch", "cloud-download"),
-				],
-				"last",
-			),
-		],
-		{ requires: "git" },
 	),
 
 	TAB("view", "View", [
@@ -382,6 +348,11 @@ const TABS: RibbonTab[] = [
 			S("editor:toggle-source", "Source mode", "code-2"),
 			S("editor:toggle-readable-line-length", "Line width", "ruler"),
 			S("editor:toggle-line-numbers", "Line numbers", "list-ordered"),
+		]),
+		G("view-navigation", "Navigation", [
+			L("switcher:open", "Quick switcher", "file-search"),
+			S("app:go-back", "Back", "arrow-left"),
+			S("app:go-forward", "Forward", "arrow-right"),
 		]),
 		G("view-editing", "Editing", [
 			S("editor:open-search", "Find", "search"),
@@ -447,12 +418,43 @@ const TABS: RibbonTab[] = [
 		),
 		G("util-file", "File", [
 			S("workspace:edit-file-title", "Rename", "pencil"),
+			S("file-explorer:duplicate-file", "Duplicate", "copy-plus"),
+			S("file-explorer:move-file", "Move", "folder-input"),
 			S("workspace:copy-path", "Copy path", "copy"),
 			S("workspace:copy-url", "Copy link", "link-2"),
 			S("workspace:export-pdf", "Export PDF", "file-down"),
 			S(PDF + "open-panel", "Advanced PDF", "printer", undefined, { requires: "advanced-pdf" }),
 		]),
 	]),
+
+	TAB(
+		"git",
+		"Git",
+		[
+			G(
+				"git-sync",
+				"Sync",
+				[
+					L(GIT + "push", "Commit and sync", "refresh-cw", "green"),
+					S(GIT + "pull", "Pull", "arrow-down-to-line"),
+					S(GIT + "push2", "Push", "arrow-up-from-line"),
+					S(GIT + "commit", "Commit all", "git-commit-horizontal"),
+				],
+				"first",
+			),
+			G(
+				"git-repository",
+				"Repository",
+				[
+					S(GIT + "open-git-view", "Source control", "git-branch"),
+					S(GIT + "open-history-view", "History", "history"),
+					S(GIT + "fetch", "Fetch", "cloud-download"),
+				],
+				"last",
+			),
+		],
+		{ requires: "git" },
+	),
 
 	TAB(
 		"html",
@@ -469,6 +471,15 @@ const TABS: RibbonTab[] = [
 	),
 ];
 
+/** Bumped whenever TABS changes shape; lets a stored layout from an older default upgrade. */
+export const DEFAULTS_VERSION = 2;
+
+/**
+ * FNV-1a of the 0.2.x default layout's signature. A vault still running that untouched default
+ * is upgraded in place; a customised layout is left alone.
+ */
+export const LEGACY_DEFAULT_HASH = "c67ca54f";
+
 export function defaultLayout(): RibbonLayout {
-	return normalizeLayout({ tabs: JSON.parse(JSON.stringify(TABS)) as RibbonTab[] });
+	return normalizeLayout({ defaultsVersion: DEFAULTS_VERSION, tabs: JSON.parse(JSON.stringify(TABS)) as RibbonTab[] });
 }

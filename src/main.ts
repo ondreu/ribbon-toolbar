@@ -22,13 +22,14 @@ import {
 	type WorkspaceLeaf,
 } from "obsidian";
 import { RibbonView, type RibbonHost } from "./view/RibbonView";
-import { defaultLayout } from "./model/defaults";
+import { defaultLayout, DEFAULTS_VERSION, LEGACY_DEFAULT_HASH } from "./model/defaults";
 import {
 	cloneLayout,
 	exportLayout,
 	featureAvailable,
 	importLayout,
 	LAYOUT_VERSION,
+	layoutHash,
 	normalizeLayout,
 	type Capabilities,
 	type ContextKey,
@@ -39,7 +40,7 @@ import { applyColor, applyHighlight, clearHtml, HIGHLIGHT_COLORS, TEXT_COLORS } 
 import { executeCommand, isPluginEnabled, mountPoint } from "./internal";
 import { detect, featureSet, MDS_PLUGIN_ID, refreshSpreadsheetHost, spreadsheetActive, type RibbonHostApi } from "./integrations";
 import { DEFAULT_SETTINGS, RibbonSettingTab, type RibbonSettings } from "./settings";
-import { confirmAction, insertSymbolDialog, insertTableDialog, pickColor, promptText } from "./view/modals";
+import { confirmAction, insertSymbolDialog, insertTableDialog, pickCanvas, pickColor, promptText } from "./view/modals";
 
 interface RibbonState {
 	ribbonTab: string;
@@ -130,12 +131,33 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 		} else {
 			this.layout = defaultLayout();
 		}
+		this.upgradeDefaultLayout();
 		this.state = {
 			ribbonTab: typeof raw?.state?.ribbonTab === "string" ? raw.state.ribbonTab : "home",
 			ribbonCollapsed: raw?.state?.ribbonCollapsed === true,
 		};
 		// "Start collapsed" is a start-up decision, not a live override of the user's toggle.
 		if (this.settings.startCollapsed) this.state.ribbonCollapsed = true;
+	}
+
+	/**
+	 * A newer build ships a different default layout. A vault that never touched the old default
+	 * is moved over silently; a customised layout is kept and the user is told once, so the
+	 * change never arrives as a surprise reset.
+	 */
+	private upgradeDefaultLayout(): void {
+		if ((this.layout.defaultsVersion ?? 1) >= DEFAULTS_VERSION) return;
+		const untouchedDefault = layoutHash(this.layout) === LEGACY_DEFAULT_HASH;
+		if (untouchedDefault) {
+			this.layout = defaultLayout();
+			void this.persist();
+			new Notice("Ribbon toolbar: the default layout has been reorganised.", 8000);
+			return;
+		}
+		// Mark it as seen either way: the hint should not repeat on every start.
+		this.layout.defaultsVersion = DEFAULTS_VERSION;
+		void this.persist();
+		new Notice("Ribbon toolbar: a new default layout is available. Utilities → reset ribbon applies it.", 10000);
 	}
 
 	private snapshot(): PluginData {
@@ -455,6 +477,11 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 			name: "Insert symbol…",
 			editorCallback: (editor) => void this.insertSymbol(editor),
 		});
+		this.addCommand({
+			id: "embed-canvas",
+			name: "Embed a canvas…",
+			editorCallback: () => void this.embedCanvas(),
+		});
 
 		/* HTML formatting: registered only while the setting is on, so the palette stays clean. */
 		this.addCommand({
@@ -607,6 +634,23 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 			return;
 		}
 		target.replaceSelection(symbol);
+	}
+
+	/** Embeds an existing canvas as `![[drawing.canvas]]`, the one insert that is awkward by hand. */
+	private async embedCanvas(): Promise<void> {
+		const canvases = this.app.vault.getFiles().filter((file) => file.extension === "canvas");
+		if (canvases.length === 0) {
+			new Notice("There is no canvas in this vault yet.");
+			return;
+		}
+		const file = await pickCanvas(this.app);
+		if (!file) return;
+		const target = this.activeEditor();
+		if (!target) {
+			new Notice("Open a note first.");
+			return;
+		}
+		target.replaceSelection(`![[${file.path}]]`);
 	}
 
 	private async pickColour(_editor: Editor, kind: "color" | "highlight"): Promise<void> {

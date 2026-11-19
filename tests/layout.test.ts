@@ -214,6 +214,8 @@ describe("default integrations", () => {
 		const file = utilities?.groups.find((group) => group.id === "util-file");
 		expect(file ? visibleItems(file, caps()).map((entry) => entry.label) : []).toEqual([
 			"Rename",
+			"Duplicate",
+			"Move",
 			"Copy path",
 			"Copy link",
 			"Export PDF",

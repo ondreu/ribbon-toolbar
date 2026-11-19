@@ -18,9 +18,14 @@ AI integrations.
 - **Customise in place.** Right-click a tab, group or button to rename it, change its icon or
   colour, move it, or remove it. Customise mode adds drag and drop and `+` tiles. The layout can
   be exported to a JSON file and imported again.
-- **Markdown only.** Bold, italic, strike, highlight, code, headings, lists, quotes, checkboxes,
-  links, tables, callouts, math, sub- and superscript. Subscript and superscript are the one
-  exception: Markdown has no syntax for them, so they use `<sub>`/`<sup>`.
+- **Markdown only.** Bold, italic, strike, highlight, code, comments, headings, lists, quotes,
+  checkboxes, links, tables, callouts, math, sub- and superscript. Subscript and superscript are
+  the one exception: Markdown has no syntax for them, so they use `<sub>`/`<sup>`.
+- **One place per action.** The default layout carries every command once: creating things lives
+  in `Insert → Pages`, Excalidraw actions live on `Draw`, spreadsheet actions on `Spreadsheet`.
+  A test fails the build if a command appears twice.
+- **Embeds, including canvases.** `Insert → Embed` opens the picker for any file; `Embed canvas`
+  lists only canvases and inserts `![[drawing.canvas]]`.
 - **Find a symbol by name.** Insert symbol opens a searchable palette of more than 200 characters —
   Greek letters, maths, units, arrows, currency, typography, marks and powers. Type what you mean
   (`ohm`, `omega`, `odpor`, `sipka`, `mikro`) and it ranks the character; Enter inserts the first
@@ -57,7 +62,7 @@ AI integrations.
 | **Templates** | Insert a template from the core Templates plugin. |
 | **Templater** | Insert a Templater template, or start a new note from one. The buttons only appear when Templater is enabled. |
 | **Excalidraw** | New drawing, embed a drawing, open one, toggle drawing/text. |
-| **Canvas** | New canvas, jump to a group, convert to a note, export as an image. |
+| **Canvas** | Jump to a group, convert to a note, export as an image. A new canvas is created from `Insert → Pages`. |
 | **Bases** | New base, insert a base, add a view or an item. |
 | **Synonym** | Thesaurus: synonym lookup for the selected word, using that plugin's local or online sources. |
 | **LanguageTool** | Check text (whole note or selection) and clear its suggestion underlines. |
