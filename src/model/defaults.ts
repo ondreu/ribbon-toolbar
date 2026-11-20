@@ -231,6 +231,7 @@ const TABS: RibbonTab[] = [
 				S(M + "grid-italic", "Italic", "italic", undefined, onGrid),
 				S(M + "grid-strike", "Strike", "strikethrough", undefined, onGrid),
 				S(M + "grid-code", "Code", "code", undefined, onGrid),
+				S(M + "grid-highlight", "Highlight", "highlighter", "yellow", onGrid),
 				S(M + "grid-wrap", "Wrap", "wrap-text", undefined, onGrid),
 				S(M + "grid-render", "Rendered", "eye", undefined, onGrid),
 				S(M + "grid-align-left", "Left", "align-left", undefined, onGrid),
@@ -472,13 +473,13 @@ const TABS: RibbonTab[] = [
 ];
 
 /** Bumped whenever TABS changes shape; lets a stored layout from an older default upgrade. */
-export const DEFAULTS_VERSION = 2;
+export const DEFAULTS_VERSION = 3;
 
 /**
- * FNV-1a of the 0.2.x default layout's signature. A vault still running that untouched default
- * is upgraded in place; a customised layout is left alone.
+ * FNV-1a hashes of every default layout this plugin has shipped. A vault still running one of
+ * them untouched is upgraded in place when a newer build starts; a customised layout is not.
  */
-export const LEGACY_DEFAULT_HASH = "c67ca54f";
+export const LEGACY_DEFAULT_HASHES = ["c67ca54f", "737bc0db"];
 
 export function defaultLayout(): RibbonLayout {
 	return normalizeLayout({ defaultsVersion: DEFAULTS_VERSION, tabs: JSON.parse(JSON.stringify(TABS)) as RibbonTab[] });

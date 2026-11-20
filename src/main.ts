@@ -22,7 +22,7 @@ import {
 	type WorkspaceLeaf,
 } from "obsidian";
 import { RibbonView, type RibbonHost } from "./view/RibbonView";
-import { defaultLayout, DEFAULTS_VERSION, LEGACY_DEFAULT_HASH } from "./model/defaults";
+import { defaultLayout, DEFAULTS_VERSION, LEGACY_DEFAULT_HASHES } from "./model/defaults";
 import {
 	cloneLayout,
 	exportLayout,
@@ -38,7 +38,7 @@ import {
 import { addLinePrefix, insertBlock, setHeading, toggleInline, toggleTag, type TextEdit } from "./format/text";
 import { applyColor, applyHighlight, clearHtml, HIGHLIGHT_COLORS, TEXT_COLORS } from "./format/html";
 import { executeCommand, isPluginEnabled, mountPoint } from "./internal";
-import { detect, featureSet, MDS_PLUGIN_ID, refreshSpreadsheetHost, spreadsheetActive, type RibbonHostApi } from "./integrations";
+import { detect, featureSet, gridCommandFor, MDS_PLUGIN_ID, refreshSpreadsheetHost, spreadsheetActive, type RibbonHostApi } from "./integrations";
 import { DEFAULT_SETTINGS, RibbonSettingTab, type RibbonSettings } from "./settings";
 import { confirmAction, insertSymbolDialog, insertTableDialog, pickCanvas, pickColor, promptText } from "./view/modals";
 
@@ -147,7 +147,7 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 	 */
 	private upgradeDefaultLayout(): void {
 		if ((this.layout.defaultsVersion ?? 1) >= DEFAULTS_VERSION) return;
-		const untouchedDefault = layoutHash(this.layout) === LEGACY_DEFAULT_HASH;
+		const untouchedDefault = LEGACY_DEFAULT_HASHES.includes(layoutHash(this.layout));
 		if (untouchedDefault) {
 			this.layout = defaultLayout();
 			void this.persist();
@@ -302,6 +302,12 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 	}
 
 	runCommand(id: string): void {
+		// A grid has no Markdown editor, so Home's formatting buttons would otherwise fall through
+		// to a note behind it. With a grid focused they act on the grid's selection instead.
+		if (spreadsheetActive(this.app) && !this.app.workspace.getActiveViewOfType(MarkdownView)) {
+			const gridCommand = gridCommandFor(id);
+			if (gridCommand && executeCommand(this.app, gridCommand)) return;
+		}
 		if (executeCommand(this.app, id)) return;
 		// Editing commands need a Markdown view. If a side pane has focus, return to the page
 		// that was used last and try once more.

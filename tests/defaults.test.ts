@@ -9,7 +9,7 @@
 
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { defaultLayout, DEFAULTS_VERSION, LEGACY_DEFAULT_HASH } from "../src/model/defaults";
+import { defaultLayout, DEFAULTS_VERSION, LEGACY_DEFAULT_HASHES } from "../src/model/defaults";
 import { layoutHash, type RibbonItem } from "../src/model/layout";
 
 interface Fixture {
@@ -98,7 +98,7 @@ describe("default layout", () => {
 		const layout = defaultLayout();
 		expect(layout.defaultsVersion).toBe(DEFAULTS_VERSION);
 		expect(DEFAULTS_VERSION).toBeGreaterThan(1);
-		// If these ever match, the in-place upgrade would replace the current layout with itself.
-		expect(layoutHash(layout)).not.toBe(LEGACY_DEFAULT_HASH);
+		// If the current layout matches a shipped default, the upgrade would replace it with itself.
+		expect(LEGACY_DEFAULT_HASHES).not.toContain(layoutHash(layout));
 	});
 });

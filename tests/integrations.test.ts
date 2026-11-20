@@ -1,6 +1,6 @@
 import type { App, Command } from "obsidian";
 import { describe, expect, it } from "vitest";
-import { detect, featureSet } from "../src/integrations";
+import { detect, featureSet, gridCommandFor } from "../src/integrations";
 import type { RibbonSettings } from "../src/settings";
 
 const settings: RibbonSettings = {
@@ -91,5 +91,20 @@ describe("Advanced PDF Export integration", () => {
 	it("does not offer the advanced PDF button when the plugin is absent", () => {
 		const features = featureSet(appWithCommands(["workspace:export-pdf"]), settings);
 		expect(features.has("advanced-pdf")).toBe(false);
+	});
+});
+
+describe("spreadsheet formatting routing", () => {
+	it("maps the formatting buttons to the grid's own commands", () => {
+		expect(gridCommandFor("editor:toggle-bold")).toBe("markdown-spreadsheets:grid-bold");
+		expect(gridCommandFor("editor:toggle-italics")).toBe("markdown-spreadsheets:grid-italic");
+		expect(gridCommandFor("editor:toggle-strikethrough")).toBe("markdown-spreadsheets:grid-strike");
+		expect(gridCommandFor("editor:toggle-code")).toBe("markdown-spreadsheets:grid-code");
+		expect(gridCommandFor("ribbon-toolbar:highlight")).toBe("markdown-spreadsheets:grid-highlight");
+	});
+
+	it("leaves commands without a grid equivalent alone", () => {
+		expect(gridCommandFor("editor:set-heading-1")).toBeNull();
+		expect(gridCommandFor("workspace:export-pdf")).toBeNull();
 	});
 });

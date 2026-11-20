@@ -57,7 +57,7 @@ AI integrations.
 
 | Plugin | What the ribbon offers |
 |---|---|
-| **Markdown Spreadsheets** | Its whole Excel-style toolbar as the contextual `Spreadsheet` tab. While Ribbon toolbar is running, that plugin hides its own toolbar. Starting a spreadsheet switches the ribbon to the tab automatically. Requires Markdown Spreadsheets **0.11.0 or newer**; older versions keep their own ribbon, so both bars would show. |
+| **Markdown Spreadsheets** | Its whole Excel-style toolbar as the contextual `Spreadsheet` tab. While Ribbon toolbar is running, that plugin hides its own toolbar. Starting a spreadsheet switches the ribbon to the tab automatically. Requires Markdown Spreadsheets **0.11.0 or newer**; older versions keep their own ribbon, so both bars would show. The `Highlight` button needs **0.13.0**. |
 | **Tasks** | Create/edit a task and toggle it done, next to Obsidian's own checkbox command. |
 | **Templates** | Insert a template from the core Templates plugin. |
 | **Templater** | Insert a Templater template, or start a new note from one. The buttons only appear when Templater is enabled. |

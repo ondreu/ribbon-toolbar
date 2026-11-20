@@ -84,6 +84,25 @@ export function featureSet(app: App, settings: RibbonSettings, detected = detect
 	return features;
 }
 
+/**
+ * Formatting commands that exist once for a Markdown editor and once inside a spreadsheet grid.
+ * With a grid focused there is no active editor, so the ribbon points these at the grid instead
+ * of doing nothing (or worse, editing the note behind it).
+ */
+const GRID_FORMAT_COMMANDS: Record<string, string> = {
+	"editor:toggle-bold": "grid-bold",
+	"editor:toggle-italics": "grid-italic",
+	"editor:toggle-strikethrough": "grid-strike",
+	"editor:toggle-code": "grid-code",
+	"ribbon-toolbar:highlight": "grid-highlight",
+};
+
+/** The Markdown Spreadsheets command equivalent of a ribbon command, if it has one. */
+export function gridCommandFor(command: string): string | null {
+	const mapped = GRID_FORMAT_COMMANDS[command];
+	return mapped ? `${MDS_PLUGIN_ID}:${mapped}` : null;
+}
+
 /** True while a Markdown Spreadsheets grid is the active view. */
 export function spreadsheetActive(app: App): boolean {
 	try {
