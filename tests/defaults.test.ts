@@ -102,3 +102,27 @@ describe("default layout", () => {
 		expect(LEGACY_DEFAULT_HASHES).not.toContain(layoutHash(layout));
 	});
 });
+
+describe("spreadsheet tabs", () => {
+	const sheetTabs = () => defaultLayout().tabs.filter((tab) => tab.context === "spreadsheet");
+
+	it("mirrors the plugin's own ribbon with five tabs", () => {
+		expect(sheetTabs().map((tab) => tab.name)).toEqual(["Home", "Data", "Calculate", "Table", "Export"]);
+		for (const tab of sheetTabs()) expect(tab.groups.length).toBeGreaterThan(0);
+	});
+
+	it("only carries grid commands there, and keeps them off the normal tabs", () => {
+		for (const tab of sheetTabs()) {
+			for (const group of tab.groups) {
+				for (const item of group.items) {
+					expect(item.command.startsWith("markdown-spreadsheets:grid-"), `${tab.name} > ${group.name}`).toBe(true);
+				}
+			}
+		}
+		const leaked = defaultLayout()
+			.tabs.filter((tab) => tab.context !== "spreadsheet")
+			.flatMap((tab) => tab.groups.flatMap((group) => group.items))
+			.filter((item) => item.command.startsWith("markdown-spreadsheets:grid-"));
+		expect(leaked).toEqual([]);
+	});
+});

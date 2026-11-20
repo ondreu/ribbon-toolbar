@@ -71,8 +71,8 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 	private rootEl: HTMLElement | null = null;
 	private writeChain: Promise<void> = Promise.resolve();
 	private lastMarkdown: MarkdownView | null = null;
-	private lastViewType = "";
 	private lastLayout: RibbonLayout | null = null;
+	private lastPlainTab = "home";
 
 	async onload(): Promise<void> {
 		await this.loadPluginData();
@@ -250,31 +250,33 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 		tool("redo", "Redo", () => this.activeEditor()?.redo());
 	}
 
-	private onLeafChange(leaf: WorkspaceLeaf | null): void {
-		const type = leaf?.view?.getViewType?.() ?? "";
-		const was = this.lastViewType;
-		this.lastViewType = type;
+	private onLeafChange(_leaf: WorkspaceLeaf | null): void {
 		const markdown = this.app.workspace.getActiveViewOfType(MarkdownView);
 		if (markdown) this.lastMarkdown = markdown;
-		if (
-			type === "markdown-spreadsheet-view" &&
-			was !== type &&
-			this.settings.integrateSpreadsheet &&
-			this.settings.autoSwitchSpreadsheetTab
-		) {
-			this.state.ribbonTab = "spreadsheet";
-			this.saveState();
-			this.view.render();
-			return;
-		}
+		this.syncContextTab();
 		this.view.tick();
 	}
 
-	/** After a restart the grid can already be the active view; no leaf-change event is coming. */
+	/**
+	 * A grid owns the tab row: its tabs replace the normal ones, so the first sheet tab is
+	 * selected while it is open and the tab the user came from is restored when it closes.
+	 * Also runs at start-up, when a grid is already the active view and no leaf event comes.
+	 */
 	private syncContextTab(): void {
 		if (!this.settings.integrateSpreadsheet || !this.settings.autoSwitchSpreadsheetTab) return;
-		if (!spreadsheetActive(this.app)) return;
-		this.state.ribbonTab = "spreadsheet";
+		const tabs = this.layout.tabs;
+		const isContext = (id: string): boolean => tabs.some((tab) => tab.id === id && !!tab.context);
+		if (spreadsheetActive(this.app)) {
+			const first = tabs.find((tab) => tab.context === "spreadsheet" && !tab.hidden);
+			if (!first) return;
+			if (!isContext(this.state.ribbonTab)) this.lastPlainTab = this.state.ribbonTab;
+			if (this.state.ribbonTab === first.id) return;
+			this.state.ribbonTab = first.id;
+		} else {
+			if (!isContext(this.state.ribbonTab)) return;
+			const back = tabs.find((tab) => tab.id === this.lastPlainTab && !tab.context && !tab.hidden);
+			this.state.ribbonTab = back?.id ?? "home";
+		}
 		this.saveState();
 		this.view.render();
 	}
@@ -287,7 +289,7 @@ export default class RibbonToolbarPlugin extends Plugin implements RibbonHost {
 		const contexts = new Set<ContextKey>();
 		const hasGrid = features.has("spreadsheet") && spreadsheetActive(this.app);
 		if (hasGrid) contexts.add("spreadsheet");
-		return { features, contexts };
+		return { features, contexts, replaceWithContext: this.settings.autoSwitchSpreadsheetTab };
 	}
 
 	rows(): number {

@@ -202,109 +202,177 @@ const TABS: RibbonTab[] = [
 	]),
 
 	TAB(
-		"spreadsheet",
-		"Spreadsheet",
+		"sheet-home",
+		"Home",
 		[
-			G("ss-table", "Table", [
-				L(M + "grid-open-note", "Open note", "file-text", undefined, onGrid),
-				S(M + "grid-reload", "Reload", "refresh-cw", undefined, onGrid),
-				S(M + "grid-reformat", "Reformat", "align-justify", undefined, onGrid),
-			]),
-			G("ss-rows", "Rows", [
-				S(M + "grid-row-above", "Above", "arrow-up-to-line", "green", onGrid),
-				S(M + "grid-row-below", "Below", "arrow-down-to-line", "green", onGrid),
+			G(
+				"sheet-clipboard",
+				"Clipboard",
+				[
+					L(M + "grid-paste", "Paste", "clipboard-paste", undefined, onGrid),
+					S(M + "grid-cut", "Cut", "scissors", undefined, onGrid),
+					S(M + "grid-copy", "Copy", "copy", undefined, onGrid),
+					S(M + "grid-paste-special", "Paste special", "clipboard-copy", undefined, onGrid),
+					S(M + "grid-undo", "Undo", "undo-2", undefined, onGrid),
+					S(M + "grid-redo", "Redo", "redo-2", undefined, onGrid),
+				],
+				"last",
+			),
+			G("sheet-rows", "Rows", [
+				L(M + "grid-row-above", "Row above", "arrow-up-to-line", "green", onGrid),
+				S(M + "grid-row-below", "Row below", "arrow-down-to-line", "green", onGrid),
 				S(M + "grid-row-duplicate", "Duplicate", "copy", undefined, onGrid),
-				S(M + "grid-row-delete", "Delete", "trash-2", "red", onGrid),
+				S(M + "grid-row-delete", "Delete row", "trash-2", "red", onGrid),
 				S(M + "grid-row-up", "Move up", "arrow-up", undefined, onGrid),
 				S(M + "grid-row-down", "Move down", "arrow-down", undefined, onGrid),
 			]),
-			G("ss-columns", "Columns", [
-				S(M + "grid-col-left", "Left", "arrow-left-to-line", "green", onGrid),
-				S(M + "grid-col-right", "Right", "arrow-right-to-line", "green", onGrid),
+			G("sheet-columns", "Columns", [
+				L(M + "grid-col-left", "Column left", "arrow-left-to-line", "green", onGrid),
+				S(M + "grid-col-right", "Column right", "arrow-right-to-line", "green", onGrid),
 				S(M + "grid-col-duplicate", "Duplicate", "copy", undefined, onGrid),
-				S(M + "grid-col-delete", "Delete", "trash-2", "red", onGrid),
+				S(M + "grid-col-delete", "Delete column", "trash-2", "red", onGrid),
 				S(M + "grid-col-left-move", "Move left", "arrow-left", undefined, onGrid),
 				S(M + "grid-col-right-move", "Move right", "arrow-right", undefined, onGrid),
 			]),
+			G("sheet-align", "Alignment", [
+				S(M + "grid-align-left", "Left", "align-left", undefined, onGrid),
+				S(M + "grid-align-center", "Center", "align-center", undefined, onGrid),
+				S(M + "grid-align-right", "Right", "align-right", undefined, onGrid),
+				S(M + "grid-align-none", "Default", "align-justify", undefined, onGrid),
+			]),
 			G(
-				"ss-format",
+				"sheet-format",
 				"Format",
 				[
-					S(M + "grid-bold", "Bold", "bold", undefined, onGrid),
+					L(M + "grid-bold", "Bold", "bold", undefined, onGrid),
 					S(M + "grid-italic", "Italic", "italic", undefined, onGrid),
 					S(M + "grid-strike", "Strike", "strikethrough", undefined, onGrid),
 					S(M + "grid-code", "Code", "code", undefined, onGrid),
 					S(M + "grid-highlight", "Highlight", "highlighter", "yellow", onGrid),
+					S(M + "grid-cf", "Conditional", "paintbrush", undefined, onGrid),
+					S(M + "grid-link", "Link", "link", undefined, onGrid),
 					S(M + "grid-wrap", "Wrap", "wrap-text", undefined, onGrid),
 					S(M + "grid-render", "Rendered", "eye", undefined, onGrid),
-					S(M + "grid-align-left", "Left", "align-left", undefined, onGrid),
-					S(M + "grid-align-center", "Center", "align-center", undefined, onGrid),
-					S(M + "grid-align-right", "Right", "align-right", undefined, onGrid),
 				],
 				"last",
 			),
-			G("ss-data", "Data", [
-				S(M + "grid-sort-asc", "Sort A→Z", "arrow-down-a-z", undefined, onGrid),
-				S(M + "grid-sort-desc", "Sort Z→A", "arrow-up-a-z", undefined, onGrid),
-				S(M + "grid-sort-multi", "Sort…", "arrow-up-down", undefined, onGrid),
-				S(M + "grid-filter", "Filter", "filter", undefined, onGrid),
-				S(M + "grid-filter-clear", "Clear filters", "filter-x", "red", onGrid),
-				S(M + "grid-find", "Find", "search", undefined, onGrid),
-				S(M + "grid-remove-duplicates", "Remove duplicates", "copy-x", undefined, onGrid),
-				S(M + "grid-text-to-columns", "Split column", "split", undefined, onGrid),
-				S(M + "grid-merge-columns", "Merge columns", "merge", undefined, onGrid),
-				S(M + "grid-change-text", "Change case", "case-sensitive", undefined, onGrid),
-				S(M + "grid-pivot", "Pivot", "pivot", undefined, onGrid),
+		],
+		{ requires: "spreadsheet", context: "spreadsheet" },
+	),
+
+	TAB(
+		"sheet-data",
+		"Data",
+		[
+			G("sheet-sort", "Sort", [
+				L(M + "grid-sort-asc", "Sort ascending", "arrow-down-a-z", undefined, onGrid),
+				S(M + "grid-sort-desc", "Sort descending", "arrow-up-a-z", undefined, onGrid),
+				S(M + "grid-sort-multi", "Sort by several columns", "arrow-up-down", undefined, onGrid),
 			]),
-			G("ss-calculate", "Calculate", [
+			G("sheet-filter", "Filter", [
+				L(M + "grid-filter", "Filter", "filter", undefined, onGrid),
+				S(M + "grid-filter-clear", "Clear", "filter-x", "red", onGrid),
+			]),
+			G("sheet-editing", "Editing", [
+				L(M + "grid-find", "Find and replace", "search", undefined, onGrid),
+				S(M + "grid-go-to", "Go to cell", "locate", undefined, onGrid),
+				S(M + "grid-fill-down", "Fill down", "arrow-down-to-line", undefined, onGrid),
+				S(M + "grid-fill-right", "Fill right", "arrow-right-to-line", undefined, onGrid),
+				S(M + "grid-insert-date", "Insert date", "calendar-days", undefined, onGrid),
+				S(M + "grid-clear", "Clear contents", "eraser", "pink", onGrid),
+			]),
+			G("sheet-tools", "Tools", [
+				L(M + "grid-pivot", "Pivot", "pivot", undefined, onGrid),
+				S(M + "grid-text-to-columns", "Split into columns", "split", undefined, onGrid),
+				S(M + "grid-merge-columns", "Merge columns", "merge", undefined, onGrid),
+				S(M + "grid-remove-duplicates", "Remove duplicates", "copy-x", undefined, onGrid),
+				S(M + "grid-change-text", "Change text", "case-sensitive", undefined, onGrid),
+			]),
+		],
+		{ requires: "spreadsheet", context: "spreadsheet" },
+	),
+
+	TAB(
+		"sheet-calculate",
+		"Calculate",
+		[
+			G("sheet-quick", "Quick", [
 				L(M + "grid-calc", "Calculate", "calculator", undefined, onGrid),
 				S(M + "grid-calc-again", "Again", "refresh-cw", undefined, onGrid),
+			]),
+			G("sheet-formulas", "Formulas", [
+				L(M + "grid-insert-formula", "Insert formula", "square-function", undefined, onGrid),
 				S(M + "grid-totals-row", "Totals row", "sigma", undefined, onGrid),
 				S(M + "grid-compute-column", "Compute column", "function-square", undefined, onGrid),
-				S(M + "grid-number-format", "Numbers", "hash", undefined, onGrid),
-				S(M + "grid-column-stats", "Statistics", "chart-column", undefined, onGrid),
+				S(M + "grid-flatten", "Flatten", "layers", undefined, onGrid),
 			]),
-			G("ss-layout", "Layout", [
-				S(M + "grid-autofit-all", "Autofit", "move-horizontal", undefined, onGrid),
-				S(M + "grid-freeze-header", "Freeze header", "pin", undefined, onGrid),
-				S(M + "grid-freeze-col", "Freeze column", "pin", undefined, onGrid),
+			G("sheet-numbers", "Numbers", [
+				L(M + "grid-date-format", "Show as date", "calendar-days", undefined, onGrid),
+				S(M + "grid-number-format", "Format numbers", "hash", undefined, onGrid),
+				S(M + "grid-column-stats", "Column statistics", "chart-column", undefined, onGrid),
+			]),
+		],
+		{ requires: "spreadsheet", context: "spreadsheet" },
+	),
+
+	TAB(
+		"sheet-table",
+		"Table",
+		[
+			G("sheet-size", "Size", [
+				L(M + "grid-colw", "Width", "move-horizontal", undefined, onGrid),
+				S(M + "grid-rowh", "Height", "move-vertical", undefined, onGrid),
+			]),
+			G("sheet-autofit", "Autofit", [
+				L(M + "grid-autofit-col", "Autofit columns", "move-horizontal", undefined, onGrid),
+				S(M + "grid-autofit-row", "Autofit rows", "move-vertical", undefined, onGrid),
+				S(M + "grid-autofit-all", "Autofit all", "maximize", undefined, onGrid),
+				S(M + "grid-reset-row", "Reset row height", "rotate-ccw", undefined, onGrid),
+			]),
+			G("sheet-freeze", "Freeze", [
+				L(M + "grid-freeze-header", "Freeze header", "pin", undefined, onGrid),
+				S(M + "grid-freeze-col", "Freeze first column", "pin", undefined, onGrid),
 				S(M + "grid-freeze-panes", "Freeze panes", "grid-2x2", undefined, onGrid),
 				S(M + "grid-freeze-none", "Unfreeze", "pin-off", undefined, onGrid),
+			]),
+			G("sheet-view", "View", [
+				S(M + "grid-zoom-out", "Zoom out", "zoom-out", undefined, onGrid),
+				S(M + "grid-zoom-reset", "100%", "scan", undefined, onGrid),
+				S(M + "grid-zoom-in", "Zoom in", "zoom-in", undefined, onGrid),
 				S(M + "grid-hide-cols", "Hide columns", "eye-off", undefined, onGrid),
 				S(M + "grid-show-cols", "Show columns", "eye", undefined, onGrid),
 			]),
-			G(
-				"ss-zoom",
-				"Zoom",
-				[
-					S(M + "grid-zoom-in", "Zoom in", "zoom-in", undefined, onGrid),
-					S(M + "grid-zoom-out", "Zoom out", "zoom-out", undefined, onGrid),
-					S(M + "grid-zoom-reset", "100%", "scan", undefined, onGrid),
-				],
-				"last",
-			),
-			G(
-				"ss-export",
-				"Export",
-				[
-					L(M + "grid-xlsx", "Excel", "file-spreadsheet", undefined, onGrid),
-					S(M + "grid-csv", "CSV", "file-down", undefined, onGrid),
-					S(M + "grid-json", "JSON", "file-json", undefined, onGrid),
-					S(M + "grid-copy-md", "Copy table", "copy", undefined, onGrid),
-					S(M + "grid-copy-html", "Copy formatted", "clipboard-copy", undefined, onGrid),
-				],
-				"last",
-			),
-			G(
-				"ss-import",
-				"Import",
-				[
-					S(M + "grid-import", "Import file", "upload", undefined, onGrid),
-					S(M + "grid-merge-file", "Merge file", "git-merge", undefined, onGrid),
-					S(M + "grid-paste-special", "Paste special", "clipboard-paste", undefined, onGrid),
-				],
-				"first",
-			),
+			G("sheet-reformat", "Table", [
+				L(M + "grid-reformat", "Reformat", "align-justify", undefined, onGrid),
+				S(M + "grid-shrink", "Shrink to data", "minimize-2", undefined, onGrid),
+				S(M + "grid-restore", "Restore a version", "history", undefined, onGrid),
+			]),
+		],
+		{ requires: "spreadsheet", context: "spreadsheet" },
+	),
+
+	TAB(
+		"sheet-export",
+		"Export",
+		[
+			G("sheet-files", "Files", [
+				L(M + "grid-xlsx", "Excel", "file-spreadsheet", undefined, onGrid),
+				S(M + "grid-csv", "CSV", "file-down", undefined, onGrid),
+				S(M + "grid-json", "JSON", "file-json", undefined, onGrid),
+				S(M + "grid-import", "Import", "upload", undefined, onGrid),
+				S(M + "grid-merge-file", "Merge", "git-merge", undefined, onGrid),
+			]),
+			G("sheet-clipboard-out", "Clipboard", [
+				L(M + "grid-copy-md", "Copy as Markdown", "copy", undefined, onGrid),
+				S(M + "grid-copy-html", "Copy formatted", "clipboard-copy", undefined, onGrid),
+				S(M + "grid-copy-json", "Copy as JSON", "file-json", undefined, onGrid),
+				S(M + "grid-copy-tsv", "Copy as text", "clipboard-paste", undefined, onGrid),
+			]),
+			G("sheet-note", "Note", [
+				L(M + "grid-save", "Save", "save", undefined, onGrid),
+				S(M + "grid-reload", "Reload", "refresh-cw", undefined, onGrid),
+				S(M + "grid-open-note", "Open the note", "file-text", undefined, onGrid),
+			]),
 		],
 		{ requires: "spreadsheet", context: "spreadsheet" },
 	),
@@ -478,13 +546,13 @@ const TABS: RibbonTab[] = [
 ];
 
 /** Bumped whenever TABS changes shape; lets a stored layout from an older default upgrade. */
-export const DEFAULTS_VERSION = 3;
+export const DEFAULTS_VERSION = 4;
 
 /**
  * FNV-1a hashes of every default layout this plugin has shipped. A vault still running one of
  * them untouched is upgraded in place when a newer build starts; a customised layout is not.
  */
-export const LEGACY_DEFAULT_HASHES = ["c67ca54f", "737bc0db"];
+export const LEGACY_DEFAULT_HASHES = ["c67ca54f", "737bc0db", "968b9837"];
 
 export function defaultLayout(): RibbonLayout {
 	return normalizeLayout({ defaultsVersion: DEFAULTS_VERSION, tabs: JSON.parse(JSON.stringify(TABS)) as RibbonTab[] });

@@ -22,7 +22,8 @@ AI integrations.
   checkboxes, links, tables, callouts, math, sub- and superscript. Subscript and superscript are
   the one exception: Markdown has no syntax for them, so they use `<sub>`/`<sup>`.
 - **One place per action.** The default layout carries every command once: creating things lives
-  in `Insert → Pages`, Excalidraw actions live on `Draw`, spreadsheet actions on `Spreadsheet`.
+  in `Insert → Pages`, Excalidraw actions live on `Draw`, spreadsheet actions on the
+  spreadsheet tabs.
   A test fails the build if a command appears twice.
 - **Embeds, including canvases.** `Insert → Embed` opens the picker for any file; `Embed canvas`
   lists only canvases and inserts `![[drawing.canvas]]`.
@@ -44,7 +45,7 @@ AI integrations.
 **Insert — the compact two-row ribbon: templates, links, blocks and pages**
 ![Insert tab with the compact ribbon](docs/screenshots/02-insert-compact.png)
 
-**Spreadsheet — Markdown Spreadsheets' grid hosted in the contextual tab**
+**Spreadsheet — Markdown Spreadsheets' five tabs replace the ribbon while a grid is open**
 ![Spreadsheet tab with a Markdown table open in the grid](docs/screenshots/03-spreadsheets.png)
 
 **Review — thesaurus for the selected word, via the Synonym plugin**
@@ -57,7 +58,7 @@ AI integrations.
 
 | Plugin | What the ribbon offers |
 |---|---|
-| **Markdown Spreadsheets** | Its whole Excel-style toolbar as the contextual `Spreadsheet` tab. While Ribbon toolbar is running, that plugin hides its own toolbar. Starting a spreadsheet switches the ribbon to the tab automatically. Requires Markdown Spreadsheets **0.11.0 or newer**; older versions keep their own ribbon, so both bars would show. The `Highlight` button needs **0.13.0**. |
+| **Markdown Spreadsheets** | Its whole Excel-style toolbar as five tabs — `Home`, `Data`, `Calculate`, `Table`, `Export` — which replace the normal tabs while a grid is open, the same way that plugin's own ribbon works. Closing the grid returns the ribbon to the tab you came from. While Ribbon toolbar is running, that plugin hides its own toolbar. Requires Markdown Spreadsheets **0.14.0**; older versions keep their own ribbon, so both bars would show, and the clipboard/history buttons need 0.14.0. |
 | **Tasks** | Create/edit a task and toggle it done, next to Obsidian's own checkbox command. |
 | **Templates** | Insert a template from the core Templates plugin. |
 | **Templater** | Insert a Templater template, or start a new note from one. The buttons only appear when Templater is enabled. |
@@ -93,8 +94,8 @@ Desktop only: the bar is mounted above the workspace, where the mobile layout ha
 - **Ribbon height** — compact (two rows) or full (three rows).
 - **Start collapsed** — show only the tab row at launch.
 - **HTML formatting** — underline, font colour and coloured highlight.
-- **Markdown spreadsheets** — let this ribbon host that plugin's toolbar, and switch to the
-  Spreadsheet tab automatically when a grid opens.
+- **Markdown spreadsheets** — let this ribbon host that plugin's toolbar. Its five tabs then
+  replace the ribbon while a grid is open; turn this off to keep them beside the normal tabs.
 - **Customise** — start customise mode, or reset the layout.
 
 ## Development

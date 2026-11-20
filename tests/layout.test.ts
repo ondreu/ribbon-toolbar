@@ -80,8 +80,14 @@ describe("visibility", () => {
 
 	it("hides tabs whose feature or context is missing", () => {
 		expect(visibleTabs(layout, caps()).map((t) => t.id)).toEqual(["home"]);
-		expect(visibleTabs(layout, caps([], ["spreadsheet"])).map((t) => t.id)).toEqual(["home", "sheet"]);
-		expect(visibleTabs(layout, caps(["html"], ["spreadsheet"])).map((t) => t.id)).toEqual(["home", "html", "sheet"]);
+		// An active context owns the row: the spreadsheet tab is shown instead of the normal ones.
+		expect(visibleTabs(layout, caps([], ["spreadsheet"])).map((t) => t.id)).toEqual(["sheet"]);
+		expect(visibleTabs(layout, caps(["html"], ["spreadsheet"])).map((t) => t.id)).toEqual(["sheet"]);
+	});
+
+	it("keeps the normal tabs next to a context tab when the host asks for that", () => {
+		const sideBySide = { ...caps(["html"], ["spreadsheet"]), replaceWithContext: false };
+		expect(visibleTabs(layout, sideBySide).map((t) => t.id)).toEqual(["home", "html", "sheet"]);
 	});
 
 	it("falls back to the first visible tab", () => {

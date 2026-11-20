@@ -19,7 +19,7 @@ export interface RibbonSettings {
 	enableHtml: boolean;
 	/** Markdown Spreadsheets hides its own toolbar and shows its commands in the Spreadsheet tab. */
 	integrateSpreadsheet: boolean;
-	/** Opening a spreadsheet switches the ribbon to its tab. */
+	/** A spreadsheet's tabs replace the normal ones while a grid is open. */
 	autoSwitchSpreadsheetTab: boolean;
 }
 
@@ -112,8 +112,8 @@ export class RibbonSettingTab extends PluginSettingTab {
 						},
 					},
 					{
-						name: "Open the spreadsheet tab automatically",
-						desc: "Switch to the spreadsheet tab when a spreadsheet becomes the active view.",
+						name: "Spreadsheet tabs replace the ribbon",
+						desc: "While a spreadsheet is open, its own tabs take over the ribbon instead of sharing the row with the normal tabs.",
 						control: {
 							type: "toggle",
 							key: "autoSwitchSpreadsheetTab",
@@ -223,8 +223,8 @@ export class RibbonSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Open the spreadsheet tab automatically")
-			.setDesc("Switch to the spreadsheet tab when a spreadsheet becomes the active view.")
+			.setName("Spreadsheet tabs replace the ribbon")
+			.setDesc("While a spreadsheet is open, its own tabs take over the ribbon instead of sharing the row with the normal tabs.")
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.autoSwitchSpreadsheetTab)

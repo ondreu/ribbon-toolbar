@@ -92,6 +92,11 @@ export interface RibbonLayout {
 export interface Capabilities {
 	features: ReadonlySet<string>;
 	contexts: ReadonlySet<string>;
+	/**
+	 * Whether an active context replaces the tab row instead of adding a tab to it. Default true;
+	 * a host that wants the old side-by-side behaviour sets it to false.
+	 */
+	replaceWithContext?: boolean;
 }
 
 let counter = 0;
@@ -230,7 +235,11 @@ export function contextAvailable(context: ContextKey | undefined, caps: Capabili
 }
 
 export function visibleTabs(layout: RibbonLayout, caps: Capabilities): RibbonTab[] {
-	return layout.tabs.filter((t) => !t.hidden && featureAvailable(t.requires, caps) && contextAvailable(t.context, caps));
+	const tabs = layout.tabs.filter((t) => !t.hidden && featureAvailable(t.requires, caps) && contextAvailable(t.context, caps));
+	// A context owns the tab row while it is active: with a grid open the spreadsheet tabs
+	// replace the normal ones instead of squeezing in beside them.
+	const contextual = caps.replaceWithContext === false ? [] : tabs.filter((t) => t.context);
+	return contextual.length > 0 ? contextual : tabs;
 }
 
 /** A tab that can be shown without the spreadsheet context. */
